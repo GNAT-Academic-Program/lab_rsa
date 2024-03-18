@@ -36,7 +36,7 @@ gnatstudio rsa_lab.gpr
 ### Run
 
 ```console
-cd bin && 
+cd bin && ./setup_tmux.sh
 ```   
 
 ## Contributing
