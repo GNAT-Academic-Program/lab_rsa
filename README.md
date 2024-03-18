@@ -13,8 +13,7 @@ sudo apt-get install tmux
 
 ### Fetch the Crate
 ```console
-alr get rsa_lab
-cd rsa_lab*
+alr get rsa_lab && cd rsa_lab*
 ```
 
 ### Build (Alire)
