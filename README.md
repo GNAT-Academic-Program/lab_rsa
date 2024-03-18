@@ -22,14 +22,12 @@ alr build
 ```
 ### Build (GPRBuild)
 ```console
-eval "$(alr printenv)"
-gprbuild rsa_lab.gpr
+eval "$(alr printenv)" && gprbuild rsa_lab.gpr
 ```
 
 ### Build (GnatStudio)
 ```console
-eval "$(alr printenv)"
-gnatstudio rsa_lab.gpr
+eval "$(alr printenv)" && gnatstudio rsa_lab.gpr
 ```
 
 ### Run
