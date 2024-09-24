@@ -19,7 +19,7 @@ package body RSA is
             E : Big_Integer;
          when Priv =>
             D : Big_Integer;
-      end case;
+      end case; 
    end record;
 
    Pub_Key  : Key_Data (Pub);
