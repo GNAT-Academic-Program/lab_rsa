@@ -44,10 +44,12 @@ cd [your-path-to-created-folder]
 git clone https://github.com/GNAT-Academic-Program/lab_rsa
 ```
 
-#### Download Visual Studio Code for MacOS:    
+#### Download Visual Studio Code for MacOS:   
 - Navigate to https://code.visualstudio.com/sha/download?build=stable&os=darwin-universal
 - Unzip the downloaded file. 
 - Open the unzipped file.
+
+NOTE: Brew for MacOS may be helpful for this installation. The instructions to install Brew can be found at: https://formulae.brew.sh/cask/visual-studio-code 
 
 #### Installing the Ada & SPARK Extension for Visual Studio Code:    
 - Click on the extension button in Visual Studio Code that looks like the following:
@@ -57,7 +59,7 @@ git clone https://github.com/GNAT-Academic-Program/lab_rsa
 - Once you find the correct version (as seen below), click "Install".
 
 #### Opening the lab project files:    
-- On the home page, click 'Open Folder'. Alternatively, you can find the option to 'Open Folder' in the 'File' tab at the top left of the screen.
+- On the home page, click 'Open Folder'. Alternatively, you can find the option to 'Open Folder' through: File -> Open folder
 - Navigate to the Gihub repository that you cloned in the previous steps. Select Open.
 
 
