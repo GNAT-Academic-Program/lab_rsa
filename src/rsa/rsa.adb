@@ -54,16 +54,16 @@ package body RSA is
    is
    begin
       if B = 0 then
-         X := 1;
-         Y := 0;
-         return A;
+       --  X := 1;
+       --  Y := 0;
+        -- return A;
       else
          declare
             X1, Y1 : Big_Integer;
-            GCD    : constant Big_Integer := Extended_GCD (B, A mod B, X1, Y1);
+           -- GCD    : constant Big_Integer := Extended_GCD (B, A mod B, X1, Y1);
          begin
             X := Y1;
-            Y := X1 - (A / B) * Y1;
+          --  Y := X1 - (A / B) * Y1;
             return GCD;
          end;
       end if;
@@ -140,12 +140,11 @@ package body RSA is
       P, Q, N, Phi, E, D : Big_Integer := 0;
    begin
       while D = 0 loop
-         P   := Pick_P;
-         Q   := Pick_Q (P);
-         N   := Compute_N (P, Q);
-         Phi := Compute_Phi (P, Q);
-         E   := Select_E (Phi);
-         D   := Mod_Inverse (E, Phi);
+       --  P   := Pick_P;
+       --  Q   := Pick_Q (P);
+       --  N   := Compute_N (P, Q);
+       --  Phi := Compute_Phi (P, Q);
+       --  D   := Mod_Inverse (E, Phi);
       end loop;
       Pub_Key.N  := N;
       Pub_Key.E  := E;
@@ -155,7 +154,7 @@ package body RSA is
 
    function Power_Mod (M, D, N : Big_Integer) return Big_Integer is
 
-      function Is_Odd (X : Big_Integer) return Boolean is (X mod 2 /= 0);
+      function Is_Odd (X : Big_Integer) return Boolean is (X mod 2 /= 0); 
 
       Result : Big_Integer := 1;
       Exp    : Big_Integer := D;
@@ -179,17 +178,17 @@ package body RSA is
    begin
       return
         To_Integer
-          (Power_Mod
-             (To_Big_Integer (Data), To_Big_Integer (Pub_Key_E),
-              To_Big_Integer (Pub_Key_N)));
+          (Power_Mod)
+           --  (To_Big_Integer (Data), To_Big_Integer (Pub_Key_E),
+             -- To_Big_Integer (Pub_Key_N)));
    end Encrypt;
 
    function Decrypt (Cypher : Integer) return Integer is
    begin
       return
         To_Integer
-          (Power_Mod (To_Big_Integer (Cypher), Priv_Key.D, Priv_Key.N));
-   end Decrypt;
+          (Power_Mod (--To_Big_Integer (Cypher), Priv_Key.D, Priv_Key.N));
+           )) end Decrypt;
 
    function To_Str (I : Integer) return String is
       S : String (1 .. 4);
