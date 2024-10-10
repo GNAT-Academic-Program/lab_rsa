@@ -54,16 +54,14 @@ package body RSA is
    is
    begin
       if B = 0 then
-       --  X := 1;
-       --  Y := 0;
-        -- return A;
+       --YOUR CODE HERE
       else
          declare
             X1, Y1 : Big_Integer;
-           -- GCD    : constant Big_Integer := Extended_GCD (B, A mod B, X1, Y1);
+           --YOUR CODE HERE
          begin
             X := Y1;
-          --  Y := X1 - (A / B) * Y1;
+          --YOUR CODE HERE
             return GCD;
          end;
       end if;
@@ -140,11 +138,7 @@ package body RSA is
       P, Q, N, Phi, E, D : Big_Integer := 0;
    begin
       while D = 0 loop
-       --  P   := Pick_P;
-       --  Q   := Pick_Q (P);
-       --  N   := Compute_N (P, Q);
-       --  Phi := Compute_Phi (P, Q);
-       --  D   := Mod_Inverse (E, Phi);
+       --YOUR CODE HERE
       end loop;
       Pub_Key.N  := N;
       Pub_Key.E  := E;
@@ -179,15 +173,14 @@ package body RSA is
       return
         To_Integer
           (Power_Mod)
-           --  (To_Big_Integer (Data), To_Big_Integer (Pub_Key_E),
-             -- To_Big_Integer (Pub_Key_N)));
+           --YOUR CODE HERE
    end Encrypt;
 
    function Decrypt (Cypher : Integer) return Integer is
    begin
       return
         To_Integer
-          (Power_Mod (--To_Big_Integer (Cypher), Priv_Key.D, Priv_Key.N));
+          (Power_Mod (--YOUR CODE HERE
            )) end Decrypt;
 
    function To_Str (I : Integer) return String is
@@ -313,12 +306,12 @@ package body RSA is
 
    function Public_Key_N return Integer is
    begin
-      -- return To_Integer (Pub_Key.N);
+       --YOUR CODE HERE
    end Public_Key_N;
 
    function Public_Key_E return Integer is
    begin
-      -- return To_Integer (Pub_Key.E);
+       --YOUR CODE HERE
    end Public_Key_E;
 
 begin

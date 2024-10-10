@@ -1,7 +1,7 @@
 # Proposed Lab Breakdown:
 
 #### Lab 1:
-- Fill in code for power mod (helper function for encryption)
+- Fill in code for Generate_Keys (helper function for encryption)
 - Fill in code for public keys
 - Fill in code for private keys
 - Fill in 182 to 184 with correct variables to complete Encrypt function
