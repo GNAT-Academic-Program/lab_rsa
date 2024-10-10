@@ -35,7 +35,7 @@ For a nonzero integer n, Euler's phi function determines all the possible intege
 ```console
 For instance, suppose n = 20. ϕ(n)= ϕ(20)= 1, 3, 7, 9, 11, 13, 17, 19
 ```
-### Eucledean Algorithm (tofind d):
+### Eucledean Algorithm (to find d):
 The Euclidean Algorithm is used to find the GCD of two integers, A and B. The process is as follows: (from Khan Academy)
 - If A = 0 then GCD(A,B)=B, since the GCD(0,B)=B, and we can stop.  
 - If B = 0 then GCD(A,B)=A, since the GCD(A,0)=A, and we can stop.  
