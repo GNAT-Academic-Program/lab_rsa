@@ -313,12 +313,12 @@ package body RSA is
 
    function Public_Key_N return Integer is
    begin
-      return To_Integer (Pub_Key.N);
+      -- return To_Integer (Pub_Key.N);
    end Public_Key_N;
 
    function Public_Key_E return Integer is
    begin
-      return To_Integer (Pub_Key.E);
+      -- return To_Integer (Pub_Key.E);
    end Public_Key_E;
 
 begin
