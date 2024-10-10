@@ -6,13 +6,13 @@ Encryption is a crucial part of everyday online communication. From texting a fr
 
 The process of securing the transfer of data from one user to another can be broken down into the following steps:
 
-1. Suppose user 1, Alice would like to send a message to user 2, Bob. Alice would like to send the message "you smell bad" to Bob. The unprotected message "you smell bad" is known as the plaintext. 
+1. Suppose user 1, Alice would like to send a message to user 2, Bob. Alice would like to send the message "don't forget the calculus assignment is due tomorrow !" to Bob. The unprotected message "don't forget the calculus assignment is due tomorrow !" is known as the plaintext. 
 
 2. In order to send it to Bob and have the data be protected, the plaintext must be encrypted using a cryptographic mathematical model with Bob's public key. Once the plaintext is encrypted, it becomes a ciphertext that is unreadable by anyone who cannot decrypt it.
 
 3. Once the plaintext is transformed into a ciphertext, it is transmitted and recieved by Bob. However, Bob cannot read the ciphertext as it is ! In order for him to be able to obtain the message from Alice, he will need to decrypt the ciphertext using a cryptographic mathematical model and his private key. This will transform the ciphertext into a readable format: namely, plaintext.
 
-4. Bob can now read Alice's message. Thanks to the plaintext, he realizes he has a body odor issue. Bob goes to the nearest drugstore to buy Axe body spray since he finds showering very annoying. Even though he'll smell like a nose-blind middle schooler, at least he won't smell like fermenting onions and poo. 
+4. Bob can now read Alice's message. Thanks to the plaintext, he realizes he forgot to do his math homework. Bob completes his assignment in time and gets an A+. 
 
 The above steps can be visualized in the image below:
 ![extension_logo](images/encrypt-decrypt.gif)
@@ -91,5 +91,4 @@ d(c) ≡ c^d (mod n)
 - RSA is the best known encryption method since it weaponizes the factorization of large numbers. Even with some of the most powerful computing systems, it is extremely difficult to determine the values of p and q, which will determine the factors of phi(n) that determine the value of d to decrypt ciphertexts.
 
 ## Your Tasks:
-- Please review the provided code for the functions Encrypt, Decrypt, Generate_Keys, Public_Key and Private_Key.
-- Fill out the missing code indicated by the comment "YOUR CODE HERE"
+- Please review the provided code for the functions
