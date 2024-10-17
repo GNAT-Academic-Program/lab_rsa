@@ -26,7 +26,7 @@ sudo chmod 644 /etc/paths.d/alr_config
 ```
 - Update the machine's PATH:    
 ```console
-/usr/libexec/path_helper -s
+sudo /usr/libexec/path_helper -s
 ```
 - Check if alr is recognized: Run the command below. It should return a valid path. If not, restart the installation.
 ```command
