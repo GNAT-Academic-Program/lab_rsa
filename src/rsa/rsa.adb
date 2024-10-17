@@ -140,11 +140,11 @@ package body RSA is
       P, Q, N, Phi, E, D : Big_Integer := 0;
    begin
       while D = 0 loop
-       --  P   := Pick_P;
-       --  Q   := Pick_Q (P);
-       --  N   := Compute_N (P, Q);
-       --  Phi := Compute_Phi (P, Q);
-       --  D   := Mod_Inverse (E, Phi);
+         P   := Pick_P;
+         Q   := Pick_Q (P);
+         N   := Compute_N (P, Q);
+         Phi := Compute_Phi (P, Q);
+         D   := Mod_Inverse (E, Phi);
       end loop;
       Pub_Key.N  := N;
       Pub_Key.E  := E;
@@ -179,16 +179,16 @@ package body RSA is
       return
         To_Integer
           (Power_Mod)
-           --  (To_Big_Integer (Data), To_Big_Integer (Pub_Key_E),
-             -- To_Big_Integer (Pub_Key_N)));
+             (To_Big_Integer (Data), To_Big_Integer (Pub_Key_E),
+              To_Big_Integer (Pub_Key_N));
    end Encrypt;
 
    function Decrypt (Cypher : Integer) return Integer is
    begin
       return
         To_Integer
-          (Power_Mod (--To_Big_Integer (Cypher), Priv_Key.D, Priv_Key.N));
-           )) end Decrypt;
+          (Power_Mod (To_Big_Integer (Cypher), Priv_Key.D, Priv_Key.N));
+            end Decrypt;
 
    function To_Str (I : Integer) return String is
       S : String (1 .. 4);
@@ -216,18 +216,18 @@ package body RSA is
 
       function Sanitize_Msg (M : String) return String is
          To_Pad : constant Integer :=
-           Nbr_Bytes_Per_Chunk - (M'Length mod (Nbr_Bytes_Per_Chunk));
-         San_Msg : constant String := M & To_Pad * Filling;
+           --Nbr_Bytes_Per_Chunk - (M'Length mod (Nbr_Bytes_Per_Chunk));
+         --San_Msg : constant String := M & To_Pad * Filling;
       begin
-         return San_Msg;
+         --return San_Msg;
       end Sanitize_Msg;
 
       function Number_Of_Words (M : String) return Integer is
-        (M'Length / Nbr_Bytes_Per_Chunk);
+        --(M'Length / Nbr_Bytes_Per_Chunk);
 
       Sanitized_Msg : constant String        := Sanitize_Msg (Msg);
       Nbr_Words     : constant Integer := Number_Of_Words (Sanitized_Msg);
-      W             : Words (1 .. Nbr_Words) := [others => 0];
+      W             : -- Words (1 .. Nbr_Words) := [others => 0];
 
       function Build_Encrypted_Msg
         (W : Words; Idx : Integer := 1) return String
@@ -235,27 +235,27 @@ package body RSA is
       begin
          if Idx < W'Last then
             return
-              "," & Trim (W (Idx)'Image) & Build_Encrypted_Msg (W, Idx + 1);
+              -- "," & Trim (W (Idx)'Image) & Build_Encrypted_Msg (W, Idx + 1);
          else
-            return "," & Trim (W (Idx)'Image);
+            return -- "," & Trim (W (Idx)'Image);
          end if;
       end Build_Encrypted_Msg;
    begin
       for I in W'Range loop
          declare
-            Idx : constant Integer := ((I - 1) * Nbr_Bytes_Per_Chunk) + 1;
+             Idx : -- constant Integer := ((I - 1) * Nbr_Bytes_Per_Chunk) + 1;
          begin
-            W (I) :=
-              To_Int (Sanitized_Msg (Idx .. Idx + Nbr_Bytes_Per_Chunk - 1));
+             W (I) :=
+              -- To_Int (Sanitized_Msg (Idx .. Idx + Nbr_Bytes_Per_Chunk - 1));
          end;
       end loop;
 
       for I in W'Range loop
-         W (I) := Encrypt (W (I), Pub_Key_E, Pub_Key_N);
+         W (I) := --Encrypt (W (I), Pub_Key_E, Pub_Key_N);
       end loop;
 
       declare
-         Encrypted_Msg : constant String := Build_Encrypted_Msg (W);
+         Encrypted_Msg : --constant String := Build_Encrypted_Msg (W);
       begin
          return Encrypted_Msg;
       end;
@@ -276,15 +276,15 @@ package body RSA is
    end Find_Next_Word;
 
    function Decrypt_Msg (Msg : String) return String is
-      S : Integer := Msg'First + 1;
-      E : Integer := Msg'Last;
+      S : -- Integer := Msg'First + 1;
+      E : -- Integer := Msg'Last;
 
       function Number_Of_Words return Integer is
          Comma_Count : Integer := 0;
       begin
          for I in Msg'Range loop
-            if Msg (I) = ',' then
-               Comma_Count := Comma_Count + 1;
+            if Msg (I) = --',' then
+               --Comma_Count := Comma_Count + 1;
             end if;
          end loop;
          return Comma_Count;
@@ -298,14 +298,14 @@ package body RSA is
       begin
          if Idx < W'Last then
             return
-              To_Str (Decrypt (W (Idx))) & Build_Decrypted_Msg (W, Idx + 1);
+              -- To_Str (Decrypt (W (Idx))) & Build_Decrypted_Msg (W, Idx + 1);
          else
-            return To_Str (Decrypt (W (Idx)));
+            return -- To_Str (Decrypt (W (Idx)));
          end if;
       end Build_Decrypted_Msg;
    begin
       for I in W'Range loop
-         W (I) := Integer'Value (Find_Next_Word (Msg, S, E));
+         W (I) -- := Integer'Value (Find_Next_Word (Msg, S, E));
          S     := E + 2;
       end loop;
       return Build_Decrypted_Msg (W);
@@ -313,12 +313,12 @@ package body RSA is
 
    function Public_Key_N return Integer is
    begin
-      -- return To_Integer (Pub_Key.N);
+       return To_Integer (Pub_Key.N);
    end Public_Key_N;
 
    function Public_Key_E return Integer is
    begin
-      -- return To_Integer (Pub_Key.E);
+       return To_Integer (Pub_Key.E);
    end Public_Key_E;
 
 begin
