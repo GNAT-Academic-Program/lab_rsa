@@ -1,14 +1,26 @@
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Numerics.Discrete_Random;
-
 with Ada.Numerics.Big_Numbers.Big_Integers;
 use Ada.Numerics.Big_Numbers.Big_Integers;
-
 with Ada.Strings.Fixed; use Ada.Strings.Fixed;
-
 with Utils; use Utils;
+with SHA2_Generic_32;
+with Ada.Streams; use Ada.Streams; -- Add this
+with Interfaces; use Interfaces; -- Ensure this is included
 
 package body RSA is
+
+   type State_Array_32 is array (Natural range <>) of Unsigned_32;
+
+   package SHA2_256 is new SHA2_Generic_32
+   (Element => Stream_Element,
+      Index => Stream_Element_Offset,
+      Element_Array => Stream_Element_Array,
+      Length => 32,
+      State_Array => State_Array_32, -- Use the defined State_Array_32 type
+      Initial_State =>
+      (16#6a09_e667#, 16#bb67ae85#, 16#3c6ef372#, 16#a54ff53a#,
+         16#510e527f#, 16#9b05688c#, 16#1f83d9ab#, 16#5be0cd19#));   
 
    type Key is (Pub, Priv);
 
@@ -29,7 +41,7 @@ package body RSA is
        Dynamic_Predicate =>
         (for all I in 2 .. (Prime_Number / 2) => (Prime_Number mod I) /= 0);
 
-   subtype Prime_Range is Positive range 1 .. 1_000;
+   subtype Prime_Range is Positive range 1 .. 5_000;
    type Prime_Array is array (Prime_Range) of Prime_Number;
 
    package Rand_Idx is new Ada.Numerics.Discrete_Random (Prime_Range);
@@ -209,11 +221,25 @@ package body RSA is
 
    Filling : constant String := "*";
    type Words is array (Positive range <>) of Integer;
+   
+   function Hash_Msg (M : String) return String is
+         Hash_Value : SHA2_256.Digest;  -- Ensure this matches the type defined in your SHA2_Generic_32
+         Result : String (1 .. Hash_Value'Length);  
+      begin
+         Hash_Value := SHA2_256.Hash(M);
+       
+
+         --for I in Hash_Value'Range loop
+            --Result(Integer(I)) := Character'Val(Integer(Hash_Value(I)));  -- Convert each byte to a Character
+         --end loop;
+   
+      return "test";  -- Return the string representation of the hash
+   end Hash_Msg;
 
    function Encrypt_Msg
      (Msg : String; Pub_Key_E, Pub_Key_N : Integer) return String
    is
-      Nbr_Bytes_Per_Chunk : constant Integer := 2;
+      Nbr_Bytes_Per_Chunk : constant Integer := 2; --this is the max number of bytes
 
       function Sanitize_Msg (M : String) return String is
          To_Pad : constant Integer :=
@@ -222,6 +248,8 @@ package body RSA is
       begin
          return San_Msg;
       end Sanitize_Msg;
+
+      
 
       function Number_Of_Words (M : String) return Integer is
         (M'Length / Nbr_Bytes_Per_Chunk);

@@ -1,0 +1,53 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "cppdbg",
+            "request": "launch",
+            "name": "Ada: Debugger Launch",
+            "program": "${workspaceFolder}/${command:ada.getOrAskForProgram}",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "preLaunchTask": "ada: Build current project"
+        },
+        {
+            "type": "cppdbg",
+            "request": "launch",
+            "name": "Ada: Debugger Launch",
+            "program": "${workspaceFolder}/${command:ada.getOrAskForProgram}",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "preLaunchTask": "ada: Build current project"
+        },
+        {
+            "type": "cppdbg",
+            "name": "Ada: Debug main - src/client/client_main.adb",
+            "request": "launch",
+            "targetArchitecture": "x64",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/bin/client_main",
+            "stopAtEntry": false,
+            "externalConsole": false,
+            "args": [],
+            "MIMode": "gdb",
+            "preLaunchTask": "ada: Build main - src/client/client_main.adb",
+            "setupCommands": [
+                {
+                    "description": "Catch all Ada exceptions",
+                    "text": "catch exception",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+    ]
+}

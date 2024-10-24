@@ -6,6 +6,7 @@ package RSA is
    function Encrypt_Msg
      (Msg : String; Pub_Key_E, Pub_Key_N : Integer) return String;
    function Decrypt_Msg (Msg : String) return String;
+   function Hash_Msg(M : String) return String;
 
    function Public_Key_N return Integer;
    function Public_Key_E return Integer;

@@ -14,6 +14,9 @@ procedure Client_Main is
 
    Terminator : constant Character := ASCII.NUL;
 
+   Initial_Hash : String := "";
+   Final_Hash : String := "";
+
    task Read_Received is
       entry Start;
    end Read_Received;
@@ -53,7 +56,15 @@ procedure Client_Main is
                Partner_Pub_Key_E'Image & "," & Partner_Pub_Key_N'Image & ")");
          else
             Put_Line (":> Received: " & Msg);
+            --Final_Hash := Hash_Msg(Msg);
+            Put_Line (":> Hash: " & Hash_Msg(Msg));
+
+            --if(Initial_Hash =  Final_Hash) then
             Put_Line (":> Decrypted: " & Decrypt_Msg (Msg));
+              -- Put_Line (":> Certificate for message is valid");
+           -- else
+             --  Put_Line (":> Certificate invalid, cannot decrypt.");
+            --end if;
          end if;
          return Msg;
       end Filter_Message;
@@ -75,12 +86,17 @@ procedure Client_Main is
    is
    begin
       if Encrypted then
+         --Initial_Hash := Hash_Msg(Msg);
+         --Put_Line("test blah unchi");
+         --String'Write(Ch, Initial_Hash & Terminator); --Hash message received from user input
          String'Write
            (Ch,
-            Encrypt_Msg (Msg, Partner_Pub_Key_E, Partner_Pub_Key_N) &
+            Encrypt_Msg (Msg, Partner_Pub_Key_E, Partner_Pub_Key_N) & --encrypt message
             Terminator);
+        
       else
          String'Write (Ch, Msg & Terminator);
+         
       end if;
    end Send_Msg;
 
