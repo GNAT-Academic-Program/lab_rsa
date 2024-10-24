@@ -226,7 +226,7 @@ package body RSA is
          Hash_Value : SHA2_256.Digest;  -- Ensure this matches the type defined in your SHA2_Generic_32
          Result : String (1 .. Hash_Value'Length);  
       begin
-         Hash_Value := SHA2_256.Hash(M);
+         Hash_Value := SHA2_256.Hash(M); --ask how to check
        
 
          --for I in Hash_Value'Range loop
@@ -239,7 +239,7 @@ package body RSA is
    function Encrypt_Msg
      (Msg : String; Pub_Key_E, Pub_Key_N : Integer) return String
    is
-      Nbr_Bytes_Per_Chunk : constant Integer := 2; --this is the max number of bytes
+      Nbr_Bytes_Per_Chunk : constant Integer := 3; --this is the max number of bytes
 
       function Sanitize_Msg (M : String) return String is
          To_Pad : constant Integer :=
