@@ -20,8 +20,8 @@ procedure test1 is
 begin
     Hash_Value := SHA2.SHA_256.Hash(Dummy_Array);
 
-    Hash_Value := SHA2.SHA_256.Hash2("fart");
-    Hash_Val2 := SHA2.SHA_256.Hash2("far");
+    Hash_Value := SHA2.SHA_256.Hash2("f");
+    Hash_Val2 := SHA2.SHA_256.Hash2("f");
 
     Put_Line(Hash_Value'Image);
     Put_Line(Hash_Val2'Image);
