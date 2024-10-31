@@ -4,23 +4,16 @@ with Ada.Numerics.Big_Numbers.Big_Integers;
 use Ada.Numerics.Big_Numbers.Big_Integers;
 with Ada.Strings.Fixed; use Ada.Strings.Fixed;
 with Utils; use Utils;
-with SHA2_Generic_32;
 with Ada.Streams; use Ada.Streams; -- Add this
 with Interfaces; use Interfaces; -- Ensure this is included
+with Ada.Text_IO; use Ada.Text_IO;
+with Interfaces; use Interfaces; -- Ensure this is included
+with SHA2; use SHA2;
+with Ada.Text_IO; use Ada.Text_IO;
 
 package body RSA is
 
-   type State_Array_32 is array (Natural range <>) of Unsigned_32;
 
-   package SHA2_256 is new SHA2_Generic_32
-   (Element => Stream_Element,
-      Index => Stream_Element_Offset,
-      Element_Array => Stream_Element_Array,
-      Length => 32,
-      State_Array => State_Array_32, -- Use the defined State_Array_32 type
-      Initial_State =>
-      (16#6a09_e667#, 16#bb67ae85#, 16#3c6ef372#, 16#a54ff53a#,
-         16#510e527f#, 16#9b05688c#, 16#1f83d9ab#, 16#5be0cd19#));   
 
    type Key is (Pub, Priv);
 
@@ -222,19 +215,27 @@ package body RSA is
    Filling : constant String := "*";
    type Words is array (Positive range <>) of Integer;
    
-   function Hash_Msg (M : String) return String is
-         Hash_Value : SHA2_256.Digest;  -- Ensure this matches the type defined in your SHA2_Generic_32
-         Result : String (1 .. Hash_Value'Length);  
-      begin
-         Hash_Value := SHA2_256.Hash(M); --ask how to check
-       
+   function Hash_Msg(StringVal: String) return SHA2.SHA_256.Digest is
+      type Char_Array is array (1 .. StringVal'Length) of Character;
+      Result : Char_Array;
+      Hash_Value : SHA2.SHA_256.Digest;  -- Ensure this matches the type defined in your SHA2_Generic_32
 
-         --for I in Hash_Value'Range loop
-            --Result(Integer(I)) := Character'Val(Integer(Hash_Value(I)));  -- Convert each byte to a Character
+
+      begin
+         Hash_Value := SHA2.SHA_256.Hash2(StringVal);
+         Put_Line(Hash_Value'Image);
+
+         --for I in Hash_Value'range loop 
+         --   if(Hash_Value(I)) = Hash_Val2(I) then
+         --      Put_Line("true");
+--
+         --   else
+         --      Put_Line("false");
+         --   end if;
          --end loop;
-   
-      return "test";  -- Return the string representation of the hash
+         return Hash_Value;
    end Hash_Msg;
+
 
    function Encrypt_Msg
      (Msg : String; Pub_Key_E, Pub_Key_N : Integer) return String

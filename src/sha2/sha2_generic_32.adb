@@ -111,12 +111,12 @@ package body SHA2_Generic_32 is
       end loop;
    end Finalize;
 
-   function Hash (Input : String) return Digest is
+   function Hash2 (Input : String) return Digest is
       Ctx : Context := Initialize;
    begin
       Update (Ctx, Input);
       return Finalize (Ctx);
-   end Hash;
+   end Hash2;
 
    function Hash (Input : Element_Array) return Digest is
       Ctx : Context := Initialize;

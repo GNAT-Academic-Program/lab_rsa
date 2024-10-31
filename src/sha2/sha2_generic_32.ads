@@ -35,7 +35,7 @@ is
    function Finalize (Ctx : Context) return Digest;
    procedure Finalize (Ctx : Context; Output : out Digest);
 
-   function Hash (Input : String) return Digest;
+   function Hash2 (Input : String) return Digest;
    function Hash (Input : Element_Array) return Digest;
 private
    subtype Block is Element_Array (0 .. Block_Length - 1);

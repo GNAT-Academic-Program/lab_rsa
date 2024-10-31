@@ -1,7 +1,13 @@
 with GNAT.Sockets; use GNAT.Sockets;
 with Ada.Text_IO;  use Ada.Text_IO;
 with Ada.Streams;  use Ada.Streams;
-
+with Ada.Text_IO; use Ada.Text_IO;
+--with SHA2_Generic_32;
+with Ada.Streams; use Ada.Streams; -- Add this
+with Interfaces; use Interfaces; -- Ensure this is included
+--with SHA2_Generic; 
+with SHA2; use SHA2;
+with Ada.Text_IO; use Ada.Text_IO;
 with RSA;   use RSA;
 with Utils; use Utils;
 
@@ -14,8 +20,9 @@ procedure Client_Main is
 
    Terminator : constant Character := ASCII.NUL;
 
-   Initial_Hash : String := "";
-   Final_Hash : String := "";
+   Initial_Hash : SHA2.SHA_256.Digest;
+   Final_Hash : SHA2.SHA_256.Digest;
+   Is_Same_Hash: Boolean;
 
    task Read_Received is
       entry Start;
@@ -56,16 +63,28 @@ procedure Client_Main is
                Partner_Pub_Key_E'Image & "," & Partner_Pub_Key_N'Image & ")");
          else
             Put_Line (":> Received: " & Msg);
-            --Final_Hash := Hash_Msg(Msg);
-            Put_Line (":> Hash: " & Hash_Msg(Msg));
+            Final_Hash := Hash_Msg(Msg);
+            Put_Line (":> Hash: " & Final_Hash'Image);
+         end if;
 
-            --if(Initial_Hash =  Final_Hash) then
+            for I in Initial_Hash'range loop
+               if(Initial_Hash(I)) = Final_Hash(I) then
+                  Put_Line("true");
+                  Is_Same_Hash := True;
+               else
+                  Is_Same_Hash := False;
+                  exit;
+               end if;
+            end loop;
+                  
+            if(Is_Same_Hash = True) then
             Put_Line (":> Decrypted: " & Decrypt_Msg (Msg));
+            end if;
               -- Put_Line (":> Certificate for message is valid");
            -- else
              --  Put_Line (":> Certificate invalid, cannot decrypt.");
             --end if;
-         end if;
+      
          return Msg;
       end Filter_Message;
 
@@ -86,8 +105,8 @@ procedure Client_Main is
    is
    begin
       if Encrypted then
-         --Initial_Hash := Hash_Msg(Msg);
-         --Put_Line("test blah unchi");
+         Initial_Hash := Hash_Msg(Msg);
+        
          --String'Write(Ch, Initial_Hash & Terminator); --Hash message received from user input
          String'Write
            (Ch,
