@@ -1,5 +1,6 @@
 with Ada.Text_IO; use Ada.Text_IO;
---with SHA2_Generic_32;
+with Ada.Numerics.Big_Numbers.Big_Integers;
+use Ada.Numerics.Big_Numbers.Big_Integers;
 with Ada.Streams; use Ada.Streams; -- Add this
 with Interfaces; use Interfaces; -- Ensure this is included
 --with SHA2_Generic; 
@@ -15,6 +16,6 @@ package RSA is
    function Decrypt_Msg (Msg : String) return String;
    function Hash_Msg(StringVal : String) return SHA2.SHA_256.Digest;
 
-   function Public_Key_N return Integer;
-   function Public_Key_E return Integer;
+   function Public_Key_N return Big_Integer;
+   function Public_Key_E return Big_Integer;
 end RSA;

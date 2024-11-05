@@ -10,10 +10,12 @@ with Ada.Text_IO; use Ada.Text_IO;
 with Interfaces; use Interfaces; -- Ensure this is included
 with SHA2; use SHA2;
 with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Numerics; use Ada.Numerics;
+
+with Ada.Numerics.Elementary_Functions;
+use  Ada.Numerics.Elementary_Functions;
 
 package body RSA is
-
-
 
    type Key is (Pub, Priv);
 
@@ -30,29 +32,59 @@ package body RSA is
    Pub_Key  : Key_Data (Pub);
    Priv_Key : Key_Data (Priv);
 
-   subtype Prime_Number is Positive range 2 .. Positive'Last with
-       Dynamic_Predicate =>
-        (for all I in 2 .. (Prime_Number / 2) => (Prime_Number mod I) /= 0);
-
-   subtype Prime_Range is Positive range 1 .. 5_000;
-   type Prime_Array is array (Prime_Range) of Prime_Number;
-
-   package Rand_Idx is new Ada.Numerics.Discrete_Random (Prime_Range);
-
-   Primes : Prime_Array;
-
-   procedure Generate_Primes is
-      Idx        : Integer := 1;
-      Test_Prime : Integer := 0;
+   function Is_Prime (N : Big_Integer) return Boolean is
+      I : Big_Integer := 3;
    begin
-      while Idx <= Prime_Range'Last loop
-         if Test_Prime in Prime_Number then
-            Primes (Idx) := Test_Prime;
-            Idx          := Idx + 1;
+      if N < 2 then
+         return False;
+      elsif N = 2 then
+         return True; -- 2 is prime
+      elsif N mod 2 = 0 then
+         return False; -- Exclude even numbers
+      end if;
+
+     
+      while I * I <= N loop
+         if N mod I = 0 then
+            return False;
          end if;
-         Test_Prime := Test_Prime + 1;
+         I := I + 2; -- Move to the next odd number
       end loop;
-   end Generate_Primes;
+
+      return True; -- N is prime
+   end Is_Prime;
+
+   subtype Prime_Number is Big_Integer;
+
+
+   subtype Prime_Range is Positive range 1 .. 10_000;  -- Define the range for primes
+   package Rand_Idx is new Ada.Numerics.Discrete_Random(Prime_Range);
+  
+   function Get_Random_Prime return Big_Integer is
+      tempInt : Integer;
+      Random_Index : Big_Integer;
+      isPrime: Boolean := False;
+      isPositive: Boolean := False;
+      package Rand_Idx is new Ada.Numerics.Discrete_Random (Integer);
+      Gen : Rand_Idx.Generator;
+   begin
+      -- Generate a random index in the range of found primes
+      Rand_Idx.Reset(Gen);
+      while not isPrime and not isPositive loop
+         tempInt := Rand_Idx.Random(Gen);
+         Random_Index := To_Big_Integer(tempInt);
+         Put_Line(Random_Index'Image);
+
+         isPrime := Is_Prime(Random_Index);
+         if Random_Index > 0 then
+            isPositive := True;
+         end if; 
+      end loop;
+      Put_Line("im done");
+      return Random_Index;
+
+   end Get_Random_Prime;
+
 
    function Extended_GCD
      (A, B : Big_Integer; X, Y : out Big_Integer) return Big_Integer
@@ -89,7 +121,9 @@ package body RSA is
       Gen : Rand_Idx.Generator;
    begin
       Rand_Idx.Reset (Gen);
-      return To_Big_Integer (Primes (Rand_Idx.Random (Gen)));
+      Put_Line("p got");
+      return Get_Random_Prime;
+      
    end Pick_P;
 
    function Pick_Q (P : Big_Integer) return Big_Integer is
@@ -98,46 +132,58 @@ package body RSA is
    begin
       Rand_Idx.Reset (Gen);
       while P = Q loop
-         Q := To_Big_Integer (Primes (Rand_Idx.Random (Gen)));
+         Q := Get_Random_Prime;
       end loop;
+      Put_Line("q got");
       return Q;
    end Pick_Q;
 
    function Compute_N (P, Q : Big_Integer) return Big_Integer is
    begin
+      Put_Line("in computing N");
       return P * Q;
    end Compute_N;
 
    function Compute_Phi (P, Q : Big_Integer) return Big_Integer is
    begin
+      Put_Line("ophi");
       return (P - 1) * (Q - 1);
    end Compute_Phi;
 
    function Select_E (Phi : Big_Integer) return Big_Integer is
-      End_Idx : Prime_Range;
+      End_Idx : Big_Integer := 10;
+      
    begin
-      for I in Prime_Range'Range loop
-         if To_Big_Integer (Primes (I)) < Phi then
-            End_Idx := I;
+      for I in 2 .. 10 loop
+         if (Is_Prime(To_Big_Integer(I))) then
+            if To_Big_Integer (I) < Phi then
+               End_Idx := To_Big_Integer(I);
+            end if;
          end if;
       end loop;
       declare
-         subtype Prime_Range_E is Prime_Range range 1 .. End_Idx;
-         package Rand_Coprime is new Ada.Numerics.Discrete_Random
-           (Prime_Range_E);
+         subtype coprimeRange is Integer range 1 .. 20;
+         package Rand_Coprime is new Ada.Numerics.Discrete_Random(coprimeRange);
          Gen_Coprime    : Rand_Coprime.Generator;
          Idx_Rand       : Prime_Range;
          Coprime_Result : Big_Integer := 0;
       begin
+         
          while Coprime_Result /= 1 loop
             Rand_Coprime.Reset (Gen_Coprime);
             Idx_Rand       := Rand_Coprime.Random (Gen_Coprime);
+
+            while not Is_Prime(To_Big_Integer(Idx_Rand)) loop
+               Idx_Rand       := Rand_Coprime.Random (Gen_Coprime);
+            end loop;
+
             Coprime_Result :=
-              Greatest_Common_Divisor
-                (To_Big_Integer (Primes (Idx_Rand)), Phi);
+               Greatest_Common_Divisor
+                  (To_Big_Integer (Idx_Rand), Phi);
+                  Put_Line("e calcs");
          end loop;
 
-         return To_Big_Integer (Primes (Idx_Rand));
+         return To_Big_Integer (Idx_Rand);
       end;
    end Select_E;
 
@@ -224,15 +270,6 @@ package body RSA is
       begin
          Hash_Value := SHA2.SHA_256.Hash2(StringVal);
          Put_Line(Hash_Value'Image);
-
-         --for I in Hash_Value'range loop 
-         --   if(Hash_Value(I)) = Hash_Val2(I) then
-         --      Put_Line("true");
---
-         --   else
-         --      Put_Line("false");
-         --   end if;
-         --end loop;
          return Hash_Value;
    end Hash_Msg;
 
@@ -341,18 +378,17 @@ package body RSA is
       return Build_Decrypted_Msg (W);
    end Decrypt_Msg;
 
-   function Public_Key_N return Integer is
+   function Public_Key_N return Big_Integer is
    begin
-      return To_Integer (Pub_Key.N);
+      return (Pub_Key.N);
    end Public_Key_N;
 
-   function Public_Key_E return Integer is
+   function Public_Key_E return Big_Integer is
    begin
-      return To_Integer (Pub_Key.E);
+      return (Pub_Key.E);
    end Public_Key_E;
 
 begin
-   Generate_Primes;
    Generate_Keys;
    Put_Line ("Public Key: " & Pub_Key'Image);
    Put_Line ("Private Key: " & Priv_Key'Image);

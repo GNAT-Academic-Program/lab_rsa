@@ -2,10 +2,10 @@ with GNAT.Sockets; use GNAT.Sockets;
 with Ada.Text_IO;  use Ada.Text_IO;
 with Ada.Streams;  use Ada.Streams;
 with Ada.Text_IO; use Ada.Text_IO;
---with SHA2_Generic_32;
+
 with Ada.Streams; use Ada.Streams; -- Add this
 with Interfaces; use Interfaces; -- Ensure this is included
---with SHA2_Generic; 
+
 with SHA2; use SHA2;
 with Ada.Text_IO; use Ada.Text_IO;
 with RSA;   use RSA;
@@ -34,8 +34,13 @@ procedure Client_Main is
          Data   : Stream_Element_Array (1 .. 1);
          C      : Character;
       begin
+         Put_Line("hgblah");
+         
          Read (Channel.all, Data, Offset);
+         Put_Line(Data'Img);
          C := Character'Val (Data (Data'First));
+         
+         Put_Line(C'Img);
          if C = Terminator then
             return "";
          else
@@ -55,36 +60,50 @@ procedure Client_Main is
                end if;
             end loop;
          end Extract_Key;
+
+         function Extract_Hash return String is
+            (Msg(5 .. 36));
+         function Extract_Encrypted_Msg return String is
+            (Msg(37 .. Msg'Last));
       begin
          if Msg'Length > 7 and then Msg (1 .. 7) = "PubKey:" then
             Extract_Key;
             Put_Line
               (":> Received Partner Public Key: " & "(" &
                Partner_Pub_Key_E'Image & "," & Partner_Pub_Key_N'Image & ")");
-         else
-            Put_Line (":> Received: " & Msg);
-            Final_Hash := Hash_Msg(Msg);
-            Put_Line (":> Hash: " & Final_Hash'Image);
-         end if;
+         elsif Msg'Length > 4 and then Msg(1 .. 4) = "Msg:" then   
+            declare
+               Hash_String: String := Extract_Hash;
+               Hash_String_Digest: SHA2.SHA_256.Digest with Address => Hash_String'Address;
+               Encrypted_Msg: String := Extract_Encrypted_Msg;
+               Encrypted_Hash: SHA2.SHA_256.Digest := Hash_Msg(Encrypted_Msg);
+            begin
+               for I in Encrypted_Hash'range loop
+                  Put_Line("Initial_Hash: " & Hash_String_Digest(I)'Image & " and Final Hash: " & Encrypted_Hash(I)'Image);
+                  if(Hash_String_Digest(I)) = Encrypted_Hash(I) then
+                     Is_Same_Hash := True;
+                  else
+                     Is_Same_Hash := False;
+                     exit;
+                  end if;
+               end loop;
 
-            for I in Initial_Hash'range loop
-               if(Initial_Hash(I)) = Final_Hash(I) then
-                  Put_Line("true");
-                  Is_Same_Hash := True;
+               Put_Line(Is_Same_Hash'Image);
+
+               if Is_Same_Hash then
+                  Put_Line (":> Decrypted: " & Decrypt_Msg (Encrypted_Msg));
+                  Ada.Text_IO.Flush;
+               
+
                else
-                  Is_Same_Hash := False;
-                  exit;
+                  Put_Line("invalid");
                end if;
-            end loop;
-                  
-            if(Is_Same_Hash = True) then
-            Put_Line (":> Decrypted: " & Decrypt_Msg (Msg));
-            end if;
-              -- Put_Line (":> Certificate for message is valid");
-           -- else
-             --  Put_Line (":> Certificate invalid, cannot decrypt.");
-            --end if;
-      
+
+            end;
+         else
+            Put_Line ("we are in the else");
+   
+         end if;
          return Msg;
       end Filter_Message;
 
@@ -95,6 +114,8 @@ procedure Client_Main is
          declare
             Msg : constant String := Filter_Message;
          begin
+            Put_Line("ghghjgjhjj");
+            Put_Line(Msg'Img);
             exit when Msg = "quit";
          end;
       end loop;
@@ -105,15 +126,19 @@ procedure Client_Main is
    is
    begin
       if Encrypted then
-         Initial_Hash := Hash_Msg(Msg);
-        
-         --String'Write(Ch, Initial_Hash & Terminator); --Hash message received from user input
-         String'Write
-           (Ch,
-            Encrypt_Msg (Msg, Partner_Pub_Key_E, Partner_Pub_Key_N) & --encrypt message
-            Terminator);
+         declare
+            Encrypted_Msg: String := Encrypt_Msg (Msg, Partner_Pub_Key_E, Partner_Pub_Key_N);
+            Message_Hash: SHA2.SHA_256.Digest := Hash_Msg(Encrypted_Msg);
+            Hash_String: String(1 .. Message_Hash'Length) with Address => Message_Hash'Address;
+         begin
+            String'Write(Ch,"Msg:" & Hash_String & Encrypted_Msg & Terminator);
+         end;
+      
+         
         
       else
+         Put_Line("sendin out key");
+         Put_Line(Msg'Img);
          String'Write (Ch, Msg & Terminator);
          
       end if;
@@ -130,11 +155,13 @@ begin
    Channel := Stream (Client);
 
    Read_Received.Start;
-
+   
    Send_Msg
      (Channel,
       "PubKey:" & Trim (RSA.Public_Key_E'Image) & "," &
       Trim (RSA.Public_Key_N'Image));
+
+   Put_Line("in client");
 
    loop
       declare
