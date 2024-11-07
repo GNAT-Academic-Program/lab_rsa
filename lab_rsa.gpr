@@ -17,7 +17,7 @@ project Lab_Rsa is
 
    
    package Compiler is
-      for Default_Switches ("Ada") use Lab_Rsa_Config.Ada_Compiler_Switches & ("-gnat2022");
+      for Default_Switches ("Ada") use Lab_Rsa_Config.Ada_Compiler_Switches & ("-gnat2022", "-gnatX");
    end Compiler;
 
    package Binder is

@@ -225,14 +225,13 @@ package body RSA is
    end Power_Mod;
 
    function Encrypt
-     (Data : Integer; Pub_Key_E, Pub_Key_N : Integer) return Integer
+     (Data : Integer; Pub_Key_E, Pub_Key_N : Big_Integer) return Integer
    is
    begin
       return
         To_Integer
           (Power_Mod
-             (To_Big_Integer (Data), To_Big_Integer (Pub_Key_E),
-              To_Big_Integer (Pub_Key_N)));
+             (To_Big_Integer (Data), Pub_Key_E, Pub_Key_N));
    end Encrypt;
 
    function Decrypt (Cypher : Integer) return Integer is
@@ -275,7 +274,7 @@ package body RSA is
 
 
    function Encrypt_Msg
-     (Msg : String; Pub_Key_E, Pub_Key_N : Integer) return String
+     (Msg : String; Pub_Key_E, Pub_Key_N : Big_Integer) return String
    is
       Nbr_Bytes_Per_Chunk : constant Integer := 3; --this is the max number of bytes
 

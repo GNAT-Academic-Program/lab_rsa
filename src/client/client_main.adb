@@ -2,6 +2,10 @@ with GNAT.Sockets; use GNAT.Sockets;
 with Ada.Text_IO;  use Ada.Text_IO;
 with Ada.Streams;  use Ada.Streams;
 with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Numerics.Big_Numbers.Big_Integers;
+use Ada.Numerics.Big_Numbers.Big_Integers;
+
+with Ada.Exceptions;  use Ada.Exceptions;
 
 with Ada.Streams; use Ada.Streams; -- Add this
 with Interfaces; use Interfaces; -- Ensure this is included
@@ -15,8 +19,8 @@ procedure Client_Main is
    Client  : Socket_Type;
    Channel : Stream_Access;
 
-   Partner_Pub_Key_E : Integer := 0;
-   Partner_Pub_Key_N : Integer := 0;
+   Partner_Pub_Key_E : Big_Integer := 0;
+   Partner_Pub_Key_N : Big_Integer := 0;
 
    Terminator : constant Character := ASCII.NUL;
 
@@ -29,24 +33,15 @@ procedure Client_Main is
    end Read_Received;
 
    task body Read_Received is
+
       function Get_Message return String is
          Offset : Stream_Element_Count;
-         Data   : Stream_Element_Array (1 .. 4096);
+         Data   : Stream_Element_Array (1 .. 1);
          C      : Character;
          Ready : Boolean;
       begin
-         
-         Put_Line(Data'Image);
-         begin
-            Read(Channel.all, Data, Offset);
-            Put_Line(Data'Img);
-         exception
-            when others => 
-               Put_Line("could not receive message");
-         end;
+         Read(Channel.all, Data, Offset);
          C := Character'Val (Data (Data'First));
-         
-         Put_Line(C'Img);
          if C = Terminator then
             return "";
          else
@@ -56,15 +51,19 @@ procedure Client_Main is
 
       function Filter_Message return String is
          Msg : constant String := Get_Message;
-         procedure Extract_Key is
+
+         procedure Extract_Key (M : String) is
          begin
-            for C in Msg'Range loop
-               if Msg (C) = ',' then
-                  Partner_Pub_Key_E := Integer'Value (Msg (8 .. C - 1));
-                  Partner_Pub_Key_N := Integer'Value (Msg (C + 1 .. Msg'Last));
+            for C in M'Range loop
+               if M (C) = ',' then
+                  Partner_Pub_Key_E := From_String (M (8 .. C - 1));
+                  Partner_Pub_Key_N := From_String (M (C + 1 .. M'Last));
                   exit;
                end if;
             end loop;
+         exception
+            when Error: others =>
+               Put_Line (Exception_Information (Error));
          end Extract_Key;
 
          function Extract_Hash return String is
@@ -72,8 +71,12 @@ procedure Client_Main is
          function Extract_Encrypted_Msg return String is
             (Msg(37 .. Msg'Last));
       begin
+         Put_Line("Message: " & Msg);
+         Put_Line("Length: " & Msg'Length'Image);
+         Put_Line("PubKey: " & "PubKey:" & Msg(1 .. 7));
+
          if Msg'Length > 7 and then Msg (1 .. 7) = "PubKey:" then
-            Extract_Key;
+            Extract_Key (Msg);
             Put_Line
               (":> Received Partner Public Key: " & "(" &
                Partner_Pub_Key_E'Image & "," & Partner_Pub_Key_N'Image & ")");

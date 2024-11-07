@@ -1,24 +1,23 @@
 #!/bin/bash
 
-# Define session name
-SESSION_NAME="Run_RSA_Lab"
+SESSION_NAME="RSA"
 
-# Start a new tmux session
-tmux has-session -t $SESSION_NAME 2>/dev/null
+# Start a new session with a single window
+tmux new-session -d -s $SESSION_NAME
 
-if [ $? != 0 ]; then
-    tmux new-session -d -s $SESSION_NAME
+# Split the window into three panes
+tmux split-window -v -t $SESSION_NAME:0.0
+tmux split-window -v -t $SESSION_NAME:0.1
 
-    # Split the window into three panes
-    tmux split-window -v -t $SESSION_NAME
-    tmux split-window -v -t $SESSION_NAME
-    tmux select-layout -t $SESSION_NAME even-vertical
+# Apply the even-vertical layout
+tmux select-layout -t $SESSION_NAME:0 even-vertical
 
-    # Optionally, send commands to each pane
-    tmux send-keys -t $SESSION_NAME:0.1 './server_main' C-m
-    tmux send-keys -t $SESSION_NAME:0.0 './client_main' C-m
-    tmux send-keys -t $SESSION_NAME:0.2 './client_main' C-m
-fi
+# Send commands to each pane
+tmux send-keys -t $SESSION_NAME:0.0 './server_main' C-m
+tmux send-keys -t $SESSION_NAME:0.1 './client_main' C-m
+tmux send-keys -t $SESSION_NAME:0.2 './client_main' C-m
 
 # Attach to the session
 tmux attach -t $SESSION_NAME
+
+
