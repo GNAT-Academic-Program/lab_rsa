@@ -31,13 +31,19 @@ procedure Client_Main is
    task body Read_Received is
       function Get_Message return String is
          Offset : Stream_Element_Count;
-         Data   : Stream_Element_Array (1 .. 1);
+         Data   : Stream_Element_Array (1 .. 4096);
          C      : Character;
+         Ready : Boolean;
       begin
-         Put_Line("hgblah");
          
-         Read (Channel.all, Data, Offset);
-         Put_Line(Data'Img);
+         Put_Line(Data'Image);
+         begin
+            Read(Channel.all, Data, Offset);
+            Put_Line(Data'Img);
+         exception
+            when others => 
+               Put_Line("could not receive message");
+         end;
          C := Character'Val (Data (Data'First));
          
          Put_Line(C'Img);
@@ -155,11 +161,15 @@ begin
    Channel := Stream (Client);
 
    Read_Received.Start;
-   
-   Send_Msg
-     (Channel,
-      "PubKey:" & Trim (RSA.Public_Key_E'Image) & "," &
-      Trim (RSA.Public_Key_N'Image));
+   begin
+      Send_Msg
+      (Channel,
+         "PubKey:" & Trim (RSA.Public_Key_E'Image) & "," &
+         Trim (RSA.Public_Key_N'Image));
+   exception
+      when others => 
+         Put_Line("failed to send message");
+   end;
 
    Put_Line("in client");
 
