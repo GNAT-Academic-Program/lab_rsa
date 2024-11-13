@@ -74,6 +74,8 @@ procedure Client_Main is
          Put_Line("Message: " & Msg);
          Put_Line("Length: " & Msg'Length'Image);
          Put_Line("PubKey: " & "PubKey:" & Msg(1 .. 7));
+         Put_Line(Msg'Length'Image);
+         Put_Line(Msg(1 .. 4));
 
          if Msg'Length > 7 and then Msg (1 .. 7) = "PubKey:" then
             Extract_Key (Msg);
@@ -100,6 +102,7 @@ procedure Client_Main is
                Put_Line(Is_Same_Hash'Image);
 
                if Is_Same_Hash then
+                  Put_Line("sdjkf " & Encrypted_Msg);
                   Put_Line (":> Decrypted: " & Decrypt_Msg (Encrypted_Msg));
                   Ada.Text_IO.Flush;
                

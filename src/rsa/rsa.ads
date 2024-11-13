@@ -8,8 +8,8 @@ with SHA2; use SHA2;
 with Ada.Text_IO; use Ada.Text_IO;
 package RSA is
    function Encrypt
-     (Data : Integer; Pub_Key_E, Pub_Key_N : Big_Integer) return Integer;
-   function Decrypt (Cypher : Integer) return Integer;
+     (Data : Big_Integer; Pub_Key_E, Pub_Key_N : Big_Integer) return Big_Integer;
+   function Decrypt (Cypher : Big_Integer) return Big_Integer;
 
    function Encrypt_Msg
      (Msg : String; Pub_Key_E, Pub_Key_N : Big_Integer) return String;

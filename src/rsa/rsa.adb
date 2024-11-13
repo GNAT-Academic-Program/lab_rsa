@@ -1,4 +1,6 @@
 with Ada.Text_IO; use Ada.Text_IO;
+
+with Ada.Numerics.Big_Numbers; use Ada.Numerics.Big_Numbers;
 with Ada.Numerics.Discrete_Random;
 with Ada.Numerics.Big_Numbers.Big_Integers;
 use Ada.Numerics.Big_Numbers.Big_Integers;
@@ -225,40 +227,56 @@ package body RSA is
    end Power_Mod;
 
    function Encrypt
-     (Data : Integer; Pub_Key_E, Pub_Key_N : Big_Integer) return Integer
+     (Data : Big_Integer; Pub_Key_E, Pub_Key_N : Big_Integer) return Big_Integer
    is
    begin
       return
-        To_Integer
+        
           (Power_Mod
-             (To_Big_Integer (Data), Pub_Key_E, Pub_Key_N));
+             ( (Data), Pub_Key_E, Pub_Key_N));
    end Encrypt;
 
-   function Decrypt (Cypher : Integer) return Integer is
+   function Decrypt (Cypher : Big_Integer) return Big_Integer is
+      
    begin
-      return
-        To_Integer
-          (Power_Mod (To_Big_Integer (Cypher), Priv_Key.D, Priv_Key.N));
+      return Power_Mod(Cypher, Priv_Key.D, Priv_Key.N);
    end Decrypt;
 
-   function To_Str (I : Integer) return String is
-      S : String (1 .. 4);
-      for S'Address use I'Address;
+   function To_Str (I : Big_Integer) return String is
+      Char_List : String := (1 .. 4 => ASCII.NUL);
+      Local_I   : Big_Integer := I;
+      Byte_Value : Integer;
+      Index : Integer := 4;
    begin
-      return S;
+   -- Extract each byte from the Big_Integer and convert it to a character
+      while Local_I > 0 and Index > 0 loop
+         Byte_Value := To_Integer(Local_I mod 256);
+         if Byte_Value >= Character'Pos(Character'First) and Byte_Value <= Character'Pos(Character'Last) then
+            Char_List(Index) := Character'Val(Byte_Value);
+         else
+            Char_List(Index) := ASCII.NUL;
+         end if;
+         Local_I := Local_I / 256;
+         Index := Index - 1;
+      end loop;
+      return Char_List(Index + 1 .. 4);
    end To_Str;
 
-   function To_Int (S : String) return Integer is
-      Base : String (1 .. 4) := [others => ASCII.NUL];
-      D    : Integer         := 0;
-      for D'Address use Base'Address;
+
+   function To_Int (S : String) return Big_Integer is
+      Result : Big_Integer := 0;
+      Multiplier : Big_Integer := 1;
    begin
-      Base (1 .. S'Length) := S;
-      return D;
+      for I in reverse S'Range loop
+         Result := Result + (To_Big_Integer(Character'Pos(S(I))) * Multiplier);
+         Multiplier := Multiplier * 256;
+      end loop;
+      return Result;
    end To_Int;
 
+   
    Filling : constant String := "*";
-   type Words is array (Positive range <>) of Integer;
+   type Words is array (Positive range <>) of Big_Integer;
    
    function Hash_Msg(StringVal: String) return SHA2.SHA_256.Digest is
       type Char_Array is array (1 .. StringVal'Length) of Character;
@@ -276,13 +294,14 @@ package body RSA is
    function Encrypt_Msg
      (Msg : String; Pub_Key_E, Pub_Key_N : Big_Integer) return String
    is
-      Nbr_Bytes_Per_Chunk : constant Integer := 3; --this is the max number of bytes
+      Nbr_Bytes_Per_Chunk : constant Integer := 1; --this is the max number of bytes
 
       function Sanitize_Msg (M : String) return String is
          To_Pad : constant Integer :=
            Nbr_Bytes_Per_Chunk - (M'Length mod (Nbr_Bytes_Per_Chunk));
          San_Msg : constant String := M & To_Pad * Filling;
       begin
+         Put_Line("sanitiszed message; " & San_Msg);
          return San_Msg;
       end Sanitize_Msg;
 
@@ -299,6 +318,7 @@ package body RSA is
         (W : Words; Idx : Integer := 1) return String
       is
       begin
+         Put_Line("num words; " & Nbr_Words'Image);
          if Idx < W'Last then
             return
               "," & Trim (W (Idx)'Image) & Build_Encrypted_Msg (W, Idx + 1);
@@ -311,18 +331,26 @@ package body RSA is
          declare
             Idx : constant Integer := ((I - 1) * Nbr_Bytes_Per_Chunk) + 1;
          begin
+            Put_Line(" word bit convert; " & Sanitized_Msg (Idx .. Idx + Nbr_Bytes_Per_Chunk - 1));
+           
+
             W (I) :=
               To_Int (Sanitized_Msg (Idx .. Idx + Nbr_Bytes_Per_Chunk - 1));
+
+            Put_Line(" word bit as int; " & W(I)'Image);
          end;
       end loop;
 
       for I in W'Range loop
+         
          W (I) := Encrypt (W (I), Pub_Key_E, Pub_Key_N);
+         Put_Line("encrypted word bit: " & W(I)'Image);
       end loop;
 
       declare
          Encrypted_Msg : constant String := Build_Encrypted_Msg (W);
       begin
+         Put_Line("official encyrpted messaGE: "& Encrypted_Msg);
          return Encrypted_Msg;
       end;
    end Encrypt_Msg;
@@ -331,49 +359,69 @@ package body RSA is
       return String
    is
    begin
+      Put_Line("Fidning next word");
       E := Msg'Last;
+      Put_Line("this is E: " & E'Image);
       for I in S .. E loop
          if Msg (I) = ',' then
             E := I - 1;
+            Put_Line("this is new E: " & E'Image);
+            Put_Line("word to b returned: " & Msg(S .. E));
             return Msg (S .. E);
          end if;
       end loop;
       return Msg (S .. Msg'Last);
    end Find_Next_Word;
 
+
    function Decrypt_Msg (Msg : String) return String is
+      type Big_Int_Vector is array (Positive range <>) of Big_Integer;
       S : Integer := Msg'First + 1;
       E : Integer := Msg'Last;
-
+      temp: Integer;
       function Number_Of_Words return Integer is
          Comma_Count : Integer := 0;
       begin
+
          for I in Msg'Range loop
+            Put_Line("index: " & I'Image);
+            Put_Line(Msg(I)'Img);
             if Msg (I) = ',' then
                Comma_Count := Comma_Count + 1;
             end if;
          end loop;
-         return Comma_Count;
+
+         Put_Line("Total commas (word count): " & Comma_Count'Image);
+         return Comma_Count;     
       end Number_Of_Words;
 
       W : Words (1 .. Number_Of_Words) := [others => 0];
 
       function Build_Decrypted_Msg
-        (W : Words; Idx : Integer := 1) return String
-      is
+        (W : Words; Idx : Integer := 1) return String is
+        
       begin
+         Put_Line("decrypted ,message chunks: "  & (Decrypt (W (Idx))'Image));
          if Idx < W'Last then
-            return
-              To_Str (Decrypt (W (Idx))) & Build_Decrypted_Msg (W, Idx + 1);
+              Put_Line("decrypted ,message chunks: "  & (Decrypt (W (Idx))'Image));
+              return To_Str (Decrypt (W (Idx))) & Build_Decrypted_Msg (W, Idx + 1);
          else
             return To_Str (Decrypt (W (Idx)));
          end if;
+      
       end Build_Decrypted_Msg;
    begin
+
       for I in W'Range loop
-         W (I) := Integer'Value (Find_Next_Word (Msg, S, E));
-         S     := E + 2;
+         Put_Line("I am in the loop");
+         W(I) := To_Big_Integer(0);
+
+         temp := Integer'Value(Find_Next_Word (Msg, S, E));
+         W(I) := To_Big_Integer(temp);
+         Put_Line("this is a word encrypted: " & W(I)'Image);
+         S := E + 2;
       end loop;
+
       return Build_Decrypted_Msg (W);
    end Decrypt_Msg;
 
