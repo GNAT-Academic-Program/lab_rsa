@@ -22,7 +22,7 @@ procedure Client_Main is
    Partner_Pub_Key_E : Big_Integer := 0;
    Partner_Pub_Key_N : Big_Integer := 0;
 
-   Terminator : constant Character := ASCII.NUL;
+   Terminator : constant Character := Character'Val(0);
 
    Initial_Hash : SHA2.SHA_256.Digest;
    Final_Hash : SHA2.SHA_256.Digest;
@@ -42,22 +42,24 @@ procedure Client_Main is
       begin
          Read(Channel.all, Data, Offset);
          C := Character'Val (Data (Data'First));
-         if C = Terminator then
-            return "";
-         else
-            return C & Get_Message;
-         end if;
+            if C = Terminator then
+               return Terminator'Image;
+            else
+               return C & Get_Message;
+            end if;
       end Get_Message;
 
       function Filter_Message return String is
          Msg : constant String := Get_Message;
 
-         procedure Extract_Key (M : String) is
+         procedure Extract_Key (M :String) is
+            Ms : String := M(M'First .. M'Last);
          begin
-            for C in M'Range loop
-               if M (C) = ',' then
-                  Partner_Pub_Key_E := From_String (M (8 .. C - 1));
-                  Partner_Pub_Key_N := From_String (M (C + 1 .. M'Last));
+            
+            for C in Ms'Range loop
+               if Ms (C) = ',' then
+                  Partner_Pub_Key_E := From_String (Ms (8 .. C - 1));
+                  Partner_Pub_Key_N := From_String (Ms (C + 1 .. Ms'Last));
                   exit;
                end if;
             end loop;
@@ -74,6 +76,7 @@ procedure Client_Main is
          Put_Line("Message: " & Msg);
          Put_Line("Length: " & Msg'Length'Image);
          Put_Line("PubKey: " & "PubKey:" & Msg(1 .. 7));
+
          Put_Line(Msg'Length'Image);
          Put_Line(Msg(1 .. 4));
 

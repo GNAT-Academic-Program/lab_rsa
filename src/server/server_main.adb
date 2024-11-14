@@ -7,7 +7,7 @@ procedure Server_Main is
 
    Tasks_To_Create : constant := 2;
 
-   Terminator : constant Character := ASCII.NUL;
+   Terminator : constant Character := Character'Val(0);
 
    type Integer_List is array (1 .. Tasks_To_Create) of Integer;
    subtype Counter is Integer range 0 .. Tasks_To_Create;

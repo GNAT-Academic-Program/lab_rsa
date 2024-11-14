@@ -414,10 +414,8 @@ package body RSA is
 
       for I in W'Range loop
          Put_Line("I am in the loop");
-         W(I) := To_Big_Integer(0);
-
-         temp := Integer'Value(Find_Next_Word (Msg, S, E));
-         W(I) := To_Big_Integer(temp);
+        
+         W(I) := From_String(Find_Next_Word (Msg, S, E));
          Put_Line("this is a word encrypted: " & W(I)'Image);
          S := E + 2;
       end loop;
