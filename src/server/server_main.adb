@@ -201,7 +201,7 @@ procedure Server_Main is
 
          Ada.Text_IO.Put_Line ("Connect " & GNAT.Sockets.Image (Client));
 
-         -- HINT: how would we initialize input and output streams   ?
+         -- HINT: how would we initialize input and output streams ?
          -- Channel := GNAT.Sockets.Stream (Connection);
 
          -- Task_Info.Pop_Stack (Use_Task);
