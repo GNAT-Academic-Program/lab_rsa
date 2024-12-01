@@ -7,3 +7,12 @@ maintainers = ["Olivier Henley <olivier.henley@gmail.com>"]
 maintainers-logins = ["ohenley"]
 
 executables = ["lab_rsa"]
+
+[[depends-on]]
+aws = "^24.0.0"
+
+[[depends-on]]
+sparknacl = "^4.0.0"
+
+[[depends-on]]
+gnatcoll_gmp = "^24.0.0"

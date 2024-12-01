@@ -1,4 +1,9 @@
 with "config/lab_rsa_config.gpr";
+with "aws";
+with "gnatcoll_gmp";
+with "sparknacl";
+
+
 project Lab_Rsa is
 
    for Source_Dirs use ("src/server/", 

@@ -1,7 +1,8 @@
 with Ada.Text_IO; use Ada.Text_IO;
-
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Numerics.Big_Numbers; use Ada.Numerics.Big_Numbers;
 with Ada.Numerics.Discrete_Random;
+with Ada.Numerics; use Ada.Numerics;
 with Ada.Numerics.Big_Numbers.Big_Integers;
 use Ada.Numerics.Big_Numbers.Big_Integers;
 with Ada.Strings.Fixed; use Ada.Strings.Fixed;
@@ -33,29 +34,85 @@ package body RSA is
 
    Pub_Key  : Key_Data (Pub);
    Priv_Key : Key_Data (Priv);
+      
+
+   function Isqrt (N : Big_Integer) return Big_Integer is
+      Float_Sqrt : Float;
+      Temp_Integer: Integer;
+      Float_Convert: Integer;
+   begin
+      Temp_Integer := To_Integer(N);
+      Float_Sqrt := Float(Temp_Integer);
+      Float_Convert := Integer(Float_Sqrt);
+      return To_Big_Integer(Float_Convert); -- Convert the float back to Big_Integer
+   end Isqrt;
+
+   function Mod_Pow (Base, Exp, M : Big_Integer) return Big_Integer is
+      Result : Big_Integer := 1;
+      B : Big_Integer := Base mod M;
+      E : Big_Integer := Exp;
+   begin
+      while E > 0 loop
+         if E mod 2 = 1 then
+            Result := (Result * B) mod M;
+         end if;
+         B := (B * B) mod M;
+         E := E / 2;
+      end loop;
+      return Result;
+   end Mod_Pow;
 
    function Is_Prime (N : Big_Integer) return Boolean is
-      I : Big_Integer := 3;
-   begin
-      if N < 2 then
+      function Miller_Rabin_Test (A : Big_Integer) return Boolean is
+         D : Big_Integer := N - 1;
+         X : Big_Integer;
+         Y : Big_Integer;
+         J : Natural := 0;
+      begin
+         -- Find largest power of 2 that divides N-1
+         while D mod 2 = 0 loop
+            D := D / 2;
+            J := J + 1;
+         end loop;
+
+         -- Initial test
+         X := Mod_Pow(A, D, N);
+         if X = 1 or X = N - 1 then
+            return True;
+         end if;
+
+         -- Square 'r-1' times
+         for I in 1 .. J - 1 loop
+            X := (X * X) mod N;
+            if X = N - 1 then
+               return True;
+            end if;
+            if X = 1 then
+               return False;
+            end if;
+         end loop;
+
          return False;
-      elsif N = 2 then
-         return True; -- 2 is prime
+      end Miller_Rabin_Test;
+
+   begin
+      -- Handle small numbers quickly
+      if N <= 1 then
+         return False;
+      elsif N <= 3 then
+         return True;
       elsif N mod 2 = 0 then
-         return False; -- Exclude even numbers
+         return False;
       end if;
 
-     
-      while I * I <= N loop
-         if N mod I = 0 then
-            return False;
-         end if;
-         I := I + 2; -- Move to the next odd number
-      end loop;
-
-      return True; -- N is prime
+      -- Miller-Rabin test with first few prime numbers as bases
+      -- These specific values provide strong guarantees for large numbers
+      return Miller_Rabin_Test(To_Big_Integer(2)) and then
+             Miller_Rabin_Test(To_Big_Integer(3)) and then
+             Miller_Rabin_Test(To_Big_Integer(5)) and then
+             Miller_Rabin_Test(To_Big_Integer(7)) and then
+             Miller_Rabin_Test(To_Big_Integer(11));
    end Is_Prime;
-
    subtype Prime_Number is Big_Integer;
 
 
@@ -72,7 +129,7 @@ package body RSA is
    begin
       -- Generate a random index in the range of found primes
       Rand_Idx.Reset(Gen);
-      while not isPrime and not isPositive loop
+      while not isPrime or not isPositive loop
          tempInt := Rand_Idx.Random(Gen);
          Random_Index := To_Big_Integer(tempInt);
          Put_Line(Random_Index'Image);
@@ -140,9 +197,11 @@ package body RSA is
       return Q;
    end Pick_Q;
 
-   function Compute_N (P, Q : Big_Integer) return Big_Integer is
+   function Compute_N (P, Q :in out Big_Integer) return Big_Integer is
    begin
       Put_Line("in computing N");
+      
+
       return P * Q;
    end Compute_N;
 
@@ -153,40 +212,60 @@ package body RSA is
    end Compute_Phi;
 
    function Select_E (Phi : Big_Integer) return Big_Integer is
-      End_Idx : Big_Integer := 10;
+      --End_Idx : Big_Integer := 10;
       
-   begin
-      for I in 2 .. 10 loop
-         if (Is_Prime(To_Big_Integer(I))) then
-            if To_Big_Integer (I) < Phi then
-               End_Idx := To_Big_Integer(I);
-            end if;
-         end if;
-      end loop;
-      declare
-         subtype coprimeRange is Integer range 1 .. 20;
-         package Rand_Coprime is new Ada.Numerics.Discrete_Random(coprimeRange);
-         Gen_Coprime    : Rand_Coprime.Generator;
-         Idx_Rand       : Prime_Range;
+   --  begin
+   --     for I in 2 .. 10 loop
+   --        if (Is_Prime(To_Big_Integer(I))) then
+   --           if To_Big_Integer (I) < Phi then
+   --              End_Idx := To_Big_Integer(I);
+   --           end if;
+   --        end if;
+   --     end loop;
+   --     declare
+   --        subtype coprimeRange is Integer range 1 .. 20;
+   --        package Rand_Coprime is new Ada.Numerics.Discrete_Random(coprimeRange);
+   --        Gen_Coprime    : Rand_Coprime.Generator;
+   --        Idx_Rand       : Prime_Range;
+   --        Idx_Rand_IsPrime: Boolean := False;
          Coprime_Result : Big_Integer := 0;
+         Final_Result: Big_Integer := 0;
       begin
          
-         while Coprime_Result /= 1 loop
-            Rand_Coprime.Reset (Gen_Coprime);
-            Idx_Rand       := Rand_Coprime.Random (Gen_Coprime);
+         --  while Coprime_Result /= 1 loop
+         --     Rand_Coprime.Reset (Gen_Coprime);
+         --     --Idx_Rand       := Rand_Coprime.Random (Gen_Coprime);
+         --     --Idx_Rand_IsPrime := Is_Prime(To_Big_Integer(Idx_Rand));
+            
+         --     while not Idx_Rand_IsPrime loop
+         --        Idx_Rand       := Rand_Coprime.Random (Gen_Coprime);
+         --        Idx_Rand_IsPrime := Is_Prime(To_Big_Integer(Idx_Rand));
+         --     end loop;
 
-            while not Is_Prime(To_Big_Integer(Idx_Rand)) loop
-               Idx_Rand       := Rand_Coprime.Random (Gen_Coprime);
-            end loop;
+         --     Coprime_Result :=
+         --        Greatest_Common_Divisor
+         --           (To_Big_Integer (Idx_Rand), Phi);
+                  
+         --        Put_Line("e calcs");
+         --        Put_Line(Coprime_Result'Image);
 
-            Coprime_Result :=
-               Greatest_Common_Divisor
-                  (To_Big_Integer (Idx_Rand), Phi);
-                  Put_Line("e calcs");
-         end loop;
+         --        if(Coprime_Result /= 1) then
+         --           Idx_Rand := Rand_Coprime.Random (Gen_Coprime);
+         --           Idx_Rand_IsPrime := Is_Prime(To_Big_Integer(Idx_Rand));
+         --        end if;
+           
+         --  end loop;
+         Coprime_Result :=
+              Greatest_Common_Divisor
+                (To_Big_Integer (3), Phi);
+         if(Coprime_Result /=1) then
+            Final_Result := To_Big_Integer(65537);
+         else
+            Final_Result := To_Big_Integer(3);
 
-         return To_Big_Integer (Idx_Rand);
-      end;
+         end if;
+      --end;
+         return Final_Result;
    end Select_E;
 
    procedure Generate_Keys is
@@ -200,6 +279,12 @@ package body RSA is
          E   := Select_E (Phi);
          D   := Mod_Inverse (E, Phi);
       end loop;
+      Put_Line("this is P:" & P'Image);
+      Put_Line("this is Q:" & Q'Image);
+      Put_Line("this is N:" & N'Image);
+      Put_Line("this is Phi:" & Phi'Image);
+      Put_Line("this is E:" & E'Image);
+      Put_Line("this is D:" & D'Image);
       Pub_Key.N  := N;
       Pub_Key.E  := E;
       Priv_Key.N := N;
@@ -214,13 +299,21 @@ package body RSA is
       Exp    : Big_Integer := D;
       Mult   : Big_Integer := M mod N;
    begin
+      Put_Line("this is M:" & M'Image);
+      Put_Line("this is n:" & N'Image);
+      Put_Line("this is Exp:" & Exp'Image);
+      Put_Line("this is Result:" & Result'Image);
+      Put_Line("this is Mult:" & Mult'Image);
       while Exp /= 0 loop
          if Is_Odd (Exp) then
             Result := (Result * Mult) mod N;
          end if;
-
          Mult := Mult**2 mod N;
          Exp  := Exp / 2;
+
+         Put_Line("this is new Exp:" & Exp'Image);
+         Put_Line("this is new Result:" & Result'Image);
+         Put_Line("this is new Mult:" & Mult'Image);
       end loop;
 
       return Result;
@@ -279,16 +372,40 @@ package body RSA is
    type Words is array (Positive range <>) of Big_Integer;
    
    function Hash_Msg(StringVal: String) return SHA2.SHA_256.Digest is
-      type Char_Array is array (1 .. StringVal'Length) of Character;
-      Result : Char_Array;
-      Hash_Value : SHA2.SHA_256.Digest;  -- Ensure this matches the type defined in your SHA2_Generic_32
+      Original_Hash : SHA2.SHA_256.Digest;
+      Cleaned_Bytes : SHA2.SHA_256.Digest := (others => 0); -- Placeholder for the cleaned digest
+      Cleaned_Length : Ada.Streams.Stream_Element_Offset := 0;  -- Tracks the length of the cleaned digest
+   begin
+      -- Compute the hash
+      Original_Hash := SHA2.SHA_256.Hash2(StringVal);
 
+      -- Iterate through the original hash bytes
+      for Index in Original_Hash'Range loop
+         Put_Line("string of hash index" & Original_Hash(Index)'Image);
+         -- Filter out unwanted characters (e.g., newlines, spaces, null bytes)
+         if Original_Hash(Index) /= Character'Pos(' ') and then
+            Original_Hash(Index) /= Character'Pos(Character'Val(10)) and then
+            Original_Hash(Index) /= Character'Pos(Character'Val(13)) and then
+            Original_Hash(Index) /= 0 then
+            
+            -- Ensure Cleaned_Length doesn't exceed the bounds
+            if Cleaned_Length < Cleaned_Bytes'Last then
+               Cleaned_Length := Cleaned_Length + 1;
+               Cleaned_Bytes(Cleaned_Length) := Original_Hash(Index);
+            else
+               -- Handle the case where the cleaned digest exceeds bounds
+               exit; -- Or raise an error, depending on your application logic
+            end if;
+         end if;
+      end loop;
 
-      begin
-         Hash_Value := SHA2.SHA_256.Hash2(StringVal);
-         Put_Line(Hash_Value'Image);
-         return Hash_Value;
+      -- Debug: Print the cleaned digest
+      -- Put_Line("Cleaned Digest: " & Cleaned_Bytes'Image);
+
+      -- Return the cleaned digest
+      return Cleaned_Bytes;
    end Hash_Msg;
+
 
 
    function Encrypt_Msg
@@ -321,9 +438,9 @@ package body RSA is
          Put_Line("num words; " & Nbr_Words'Image);
          if Idx < W'Last then
             return
-              "," & Trim (W (Idx)'Image) & Build_Encrypted_Msg (W, Idx + 1);
+               Trim (W (Idx)'Image) & "," & Build_Encrypted_Msg (W, Idx + 1);
          else
-            return "," & Trim (W (Idx)'Image);
+            return Trim (W (Idx)'Image) & ",";
          end if;
       end Build_Encrypted_Msg;
    begin
@@ -345,13 +462,20 @@ package body RSA is
          
          W (I) := Encrypt (W (I), Pub_Key_E, Pub_Key_N);
          Put_Line("encrypted word bit: " & W(I)'Image);
+         Put_Line("decrypted word bit" & Decrypt(W(I))'Image);
+         Put_Line("word string val" & To_Str(Decrypt(W(I))));
       end loop;
 
       declare
          Encrypted_Msg : constant String := Build_Encrypted_Msg (W);
       begin
-         Put_Line("official encyrpted messaGE: "& Encrypted_Msg);
+         Put_Line("official encyrpted messaGE:"& Encrypted_Msg);
          return Encrypted_Msg;
+      exception
+         when others =>
+            Put_Line("Error in Build_Encrypted_Msg");
+            raise;
+        
       end;
    end Encrypt_Msg;
 
@@ -360,6 +484,7 @@ package body RSA is
    is
    begin
       Put_Line("Fidning next word");
+      
       E := Msg'Last;
       Put_Line("this is E: " & E'Image);
       for I in S .. E loop
@@ -376,7 +501,7 @@ package body RSA is
 
    function Decrypt_Msg (Msg : String) return String is
       type Big_Int_Vector is array (Positive range <>) of Big_Integer;
-      S : Integer := Msg'First + 1;
+      S : Integer := Msg'First;
       E : Integer := Msg'Last;
       temp: Integer;
       function Number_Of_Words return Integer is
@@ -401,11 +526,14 @@ package body RSA is
         (W : Words; Idx : Integer := 1) return String is
         
       begin
-         Put_Line("decrypted ,message chunks: "  & (Decrypt (W (Idx))'Image));
+        
          if Idx < W'Last then
+              Put_Line("encrypted part:" & W(Idx)'Image);
               Put_Line("decrypted ,message chunks: "  & (Decrypt (W (Idx))'Image));
               return To_Str (Decrypt (W (Idx))) & Build_Decrypted_Msg (W, Idx + 1);
          else
+            Put_Line("encrypted part:" & W(Idx)'Image);
+            Put_Line("decrypted ,message chunks: "  & (Decrypt (W (Idx))'Image));
             return To_Str (Decrypt (W (Idx)));
          end if;
       

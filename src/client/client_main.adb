@@ -4,6 +4,7 @@ with Ada.Streams;  use Ada.Streams;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Numerics.Big_Numbers.Big_Integers;
 use Ada.Numerics.Big_Numbers.Big_Integers;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 with Ada.Exceptions;  use Ada.Exceptions;
 
@@ -22,7 +23,7 @@ procedure Client_Main is
    Partner_Pub_Key_E : Big_Integer := 0;
    Partner_Pub_Key_N : Big_Integer := 0;
 
-   Terminator : constant Character := Character'Val(0);
+   Terminator : constant Character := ASCII.NUL;
 
    Initial_Hash : SHA2.SHA_256.Digest;
    Final_Hash : SHA2.SHA_256.Digest;
@@ -32,7 +33,23 @@ procedure Client_Main is
       entry Start;
    end Read_Received;
 
+   function To_Hexadecimal (Data : SHA2.SHA_256.Digest) return String is
+         Hex : constant array(0 .. 15) of Character := "0123456789ABCDEF";
+         Result : String(1 .. Data'Length * 2); -- Each byte becomes 2 characters in hex
+         Index : Integer := 0;
+      begin
+         for Byte of Data loop
+            Index := Index + 1;
+            -- High nibble (the first half of the byte)
+            Result(Index * 2 - 1) := Hex(Integer(Byte) / 16);
+            -- Low nibble (the second half of the byte)
+            Result(Index * 2) := Hex(Integer(Byte) mod 16);
+         end loop;
+         return Result;
+      end To_Hexadecimal;
+
    task body Read_Received is
+      
 
       function Get_Message return String is
          Offset : Stream_Element_Count;
@@ -43,7 +60,7 @@ procedure Client_Main is
          Read(Channel.all, Data, Offset);
          C := Character'Val (Data (Data'First));
             if C = Terminator then
-               return Terminator'Image;
+               return "";
             else
                return C & Get_Message;
             end if;
@@ -69,9 +86,9 @@ procedure Client_Main is
          end Extract_Key;
 
          function Extract_Hash return String is
-            (Msg(5 .. 36));
+            (Msg(5 .. 68));
          function Extract_Encrypted_Msg return String is
-            (Msg(37 .. Msg'Last));
+            (Msg(69 .. Msg'Last));
       begin
          Put_Line("Message: " & Msg);
          Put_Line("Length: " & Msg'Length'Image);
@@ -91,16 +108,26 @@ procedure Client_Main is
                Hash_String_Digest: SHA2.SHA_256.Digest with Address => Hash_String'Address;
                Encrypted_Msg: String := Extract_Encrypted_Msg;
                Encrypted_Hash: SHA2.SHA_256.Digest := Hash_Msg(Encrypted_Msg);
+               Hex_Hash_New: Unbounded_String := To_Unbounded_String(To_Hexadecimal(Encrypted_Hash));
+               Final_Hex_Hash: String(1 .. Length(Hex_Hash_New)) := To_String(Hex_Hash_New);
             begin
-               for I in Encrypted_Hash'range loop
-                  Put_Line("Initial_Hash: " & Hash_String_Digest(I)'Image & " and Final Hash: " & Encrypted_Hash(I)'Image);
-                  if(Hash_String_Digest(I)) = Encrypted_Hash(I) then
-                     Is_Same_Hash := True;
-                  else
-                     Is_Same_Hash := False;
-                     exit;
-                  end if;
-               end loop;
+               Put_Line("old hash:" & Hash_String);
+               Put_Line("new hash:" & Final_Hex_Hash);
+               Put_Line("encrypted message:"& Encrypted_Msg);
+               if(Hash_String = Final_Hex_Hash) then
+                  Is_Same_Hash := True;
+               else
+                  Is_Same_Hash := False;
+               end if;
+               --  for I in Encrypted_Hash'range loop
+               --     Put_Line("Initial_Hash: " & Hash_String_Digest(I)'Image & " and Final Hash: " & Encrypted_Hash(I)'Image);
+               --     if(Hash_String_Digest(I)) = Encrypted_Hash(I) then
+               --        Is_Same_Hash := True;
+               --     else
+               --        Is_Same_Hash := False;
+               --        exit;
+               --     end if;
+               --  end loop;
 
                Put_Line(Is_Same_Hash'Image);
 
@@ -142,11 +169,26 @@ procedure Client_Main is
    begin
       if Encrypted then
          declare
-            Encrypted_Msg: String := Encrypt_Msg (Msg, Partner_Pub_Key_E, Partner_Pub_Key_N);
-            Message_Hash: SHA2.SHA_256.Digest := Hash_Msg(Encrypted_Msg);
-            Hash_String: String(1 .. Message_Hash'Length) with Address => Message_Hash'Address;
+            Encrypted_Msg: Unbounded_String := To_Unbounded_String(Encrypt_Msg (Msg, Partner_Pub_Key_E, Partner_Pub_Key_N));
+            Final_Encrypted_Msg: String(1 .. Length(Encrypted_Msg)) := To_String(Encrypted_Msg);
+            Message_Hash: SHA2.SHA_256.Digest := Hash_Msg(Final_Encrypted_Msg);
+            Hash_String: Unbounded_String := To_Unbounded_String(To_Hexadecimal(Message_Hash));
+            Final_Hash_String: String(1.. Length(Hash_String)) := To_String(Hash_String);
+          
+            --Hash_String: String(1 .. Messeage_Hash'Length) with Address => Message_Hash'Address;
+
          begin
-            String'Write(Ch,"Msg:" & Hash_String & Encrypted_Msg & Terminator);
+          
+            Put_Line(Final_Hash_String);
+            Put_Line("separator");
+            Put_Line(Final_Encrypted_Msg);
+            String'Write(Ch,"Msg:" & Final_Hash_String & Final_Encrypted_Msg & Terminator);
+            exception 
+               when Error: others =>
+               Put_Line (Exception_Information (Error));
+
+     
+            
          end;
       
          
