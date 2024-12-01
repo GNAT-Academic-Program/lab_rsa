@@ -34,19 +34,8 @@ package body RSA is
 
    Pub_Key  : Key_Data (Pub);
    Priv_Key : Key_Data (Priv);
-      
 
-   function Isqrt (N : Big_Integer) return Big_Integer is
-      Float_Sqrt : Float;
-      Temp_Integer: Integer;
-      Float_Convert: Integer;
-   begin
-      Temp_Integer := To_Integer(N);
-      Float_Sqrt := Float(Temp_Integer);
-      Float_Convert := Integer(Float_Sqrt);
-      return To_Big_Integer(Float_Convert); -- Convert the float back to Big_Integer
-   end Isqrt;
-
+-- helper function Mod_Pow and Is_Prime with Miller-Rabin test function are courtesy of Cursor AI.
    function Mod_Pow (Base, Exp, M : Big_Integer) return Big_Integer is
       Result : Big_Integer := 1;
       B : Big_Integer := Base mod M;
@@ -212,49 +201,9 @@ package body RSA is
    end Compute_Phi;
 
    function Select_E (Phi : Big_Integer) return Big_Integer is
-      --End_Idx : Big_Integer := 10;
-      
-   --  begin
-   --     for I in 2 .. 10 loop
-   --        if (Is_Prime(To_Big_Integer(I))) then
-   --           if To_Big_Integer (I) < Phi then
-   --              End_Idx := To_Big_Integer(I);
-   --           end if;
-   --        end if;
-   --     end loop;
-   --     declare
-   --        subtype coprimeRange is Integer range 1 .. 20;
-   --        package Rand_Coprime is new Ada.Numerics.Discrete_Random(coprimeRange);
-   --        Gen_Coprime    : Rand_Coprime.Generator;
-   --        Idx_Rand       : Prime_Range;
-   --        Idx_Rand_IsPrime: Boolean := False;
          Coprime_Result : Big_Integer := 0;
          Final_Result: Big_Integer := 0;
       begin
-         
-         --  while Coprime_Result /= 1 loop
-         --     Rand_Coprime.Reset (Gen_Coprime);
-         --     --Idx_Rand       := Rand_Coprime.Random (Gen_Coprime);
-         --     --Idx_Rand_IsPrime := Is_Prime(To_Big_Integer(Idx_Rand));
-            
-         --     while not Idx_Rand_IsPrime loop
-         --        Idx_Rand       := Rand_Coprime.Random (Gen_Coprime);
-         --        Idx_Rand_IsPrime := Is_Prime(To_Big_Integer(Idx_Rand));
-         --     end loop;
-
-         --     Coprime_Result :=
-         --        Greatest_Common_Divisor
-         --           (To_Big_Integer (Idx_Rand), Phi);
-                  
-         --        Put_Line("e calcs");
-         --        Put_Line(Coprime_Result'Image);
-
-         --        if(Coprime_Result /= 1) then
-         --           Idx_Rand := Rand_Coprime.Random (Gen_Coprime);
-         --           Idx_Rand_IsPrime := Is_Prime(To_Big_Integer(Idx_Rand));
-         --        end if;
-           
-         --  end loop;
          Coprime_Result :=
               Greatest_Common_Divisor
                 (To_Big_Integer (3), Phi);
@@ -279,12 +228,6 @@ package body RSA is
          E   := Select_E (Phi);
          D   := Mod_Inverse (E, Phi);
       end loop;
-      Put_Line("this is P:" & P'Image);
-      Put_Line("this is Q:" & Q'Image);
-      Put_Line("this is N:" & N'Image);
-      Put_Line("this is Phi:" & Phi'Image);
-      Put_Line("this is E:" & E'Image);
-      Put_Line("this is D:" & D'Image);
       Pub_Key.N  := N;
       Pub_Key.E  := E;
       Priv_Key.N := N;
@@ -299,21 +242,12 @@ package body RSA is
       Exp    : Big_Integer := D;
       Mult   : Big_Integer := M mod N;
    begin
-      Put_Line("this is M:" & M'Image);
-      Put_Line("this is n:" & N'Image);
-      Put_Line("this is Exp:" & Exp'Image);
-      Put_Line("this is Result:" & Result'Image);
-      Put_Line("this is Mult:" & Mult'Image);
       while Exp /= 0 loop
          if Is_Odd (Exp) then
             Result := (Result * Mult) mod N;
          end if;
          Mult := Mult**2 mod N;
          Exp  := Exp / 2;
-
-         Put_Line("this is new Exp:" & Exp'Image);
-         Put_Line("this is new Result:" & Result'Image);
-         Put_Line("this is new Mult:" & Mult'Image);
       end loop;
 
       return Result;
@@ -334,7 +268,7 @@ package body RSA is
    begin
       return Power_Mod(Cypher, Priv_Key.D, Priv_Key.N);
    end Decrypt;
-
+   --To_Str and To_Int are courtesy of ChatGPT
    function To_Str (I : Big_Integer) return String is
       Char_List : String := (1 .. 4 => ASCII.NUL);
       Local_I   : Big_Integer := I;
@@ -371,6 +305,7 @@ package body RSA is
    Filling : constant String := "*";
    type Words is array (Positive range <>) of Big_Integer;
    
+   --Hash_Msg lines 318 to 334 for cleaning the hash is courtesy of ChatGPT
    function Hash_Msg(StringVal: String) return SHA2.SHA_256.Digest is
       Original_Hash : SHA2.SHA_256.Digest;
       Cleaned_Bytes : SHA2.SHA_256.Digest := (others => 0); -- Placeholder for the cleaned digest
@@ -399,10 +334,7 @@ package body RSA is
          end if;
       end loop;
 
-      -- Debug: Print the cleaned digest
-      -- Put_Line("Cleaned Digest: " & Cleaned_Bytes'Image);
-
-      -- Return the cleaned digest
+  
       return Cleaned_Bytes;
    end Hash_Msg;
 
@@ -469,7 +401,7 @@ package body RSA is
       declare
          Encrypted_Msg : constant String := Build_Encrypted_Msg (W);
       begin
-         Put_Line("official encyrpted messaGE:"& Encrypted_Msg);
+         Put_Line("official encyrpted message:"& Encrypted_Msg);
          return Encrypted_Msg;
       exception
          when others =>
