@@ -1,5 +1,6 @@
 # Lab 2 Instructions
 
+- Note that the theory explanations were powered by my research in combination with ChatGPT.
 ## How are messages encrypted ?
 To encrypt plaintext, we make use of the Encrypt_Msg function. From this function (and the helper functions it calls), we are able to achieve the necessary steps to build an encrypted message from the given plaintext and the required keys.
 
@@ -8,7 +9,7 @@ The steps are as follows: (as summarized by ChatGPT)
 - Split the sanitized message into chunks.
 - Convert each chunk into an integer.
 - Encrypt each integer.
-- Construct a string from the encrypted integers and returns the string aka the cyphertext.
+- Construct a string from the encrypted integers and returns the string (ie. the cyphertext).
 
 ### Step 1: Sanitization of Plaintext:
 - In this step, we make use of the Sanitize_Msg function that takes the plaintext as string as a parameter. First, the function calculates the number of padding bytes needed to make the plaintext a multiple of 2. This program has set the number of bytes per chunk to be 2. This number is held in a variable called To_Pad.
