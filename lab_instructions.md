@@ -59,9 +59,16 @@ GNAT.Sockets.Close_Socket (Socket => Socket_Type);
 ```ada
 arrayMessages (index).Add (new message);
 ```
+## RSA Certificate Validation
+- In order to ensure the integrity of the message sent, certificates are used.
+- When we are about to send an encrypted message, we apply the SHA256 algorithm to the message which generates a digest. According to ScienceDirect, a message digest can be defined as "encrypted, abbreviated version of a message generated through a hash function". The purpoes of the digest is to uniquely identify the message and renders it "computationally infeasible to decrypt or duplicate the original message.".
+- You can learn more about message digests [here](https://www.sciencedirect.com/topics/computer-science/message-digest#:~:text=A%20message%20digest%20is%20an,or%20duplicate%20the%20original%20message.).
+- In order to properly send the digest along with the encrypted message, we transform the digest into hexadcimal.
+- Upon receving the ciphertext, we first extract the digest alongside it, and obtain another digest by applying the SHA256 algorithm to the receved ciphertext. 
+- Then, we compare the newly created digest along with the received one. If they match, this means that the message sent was not altered and can be decrypted.
 
 ## Your Task:
-- Complete the missing parts of the server_main.adb file.
+- Complete the missing parts of the client_main.adb file.
 
 ### Hints:
 - The array of messages is defined as an Ada type called:
