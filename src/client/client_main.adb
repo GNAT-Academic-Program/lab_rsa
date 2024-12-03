@@ -33,6 +33,7 @@ procedure Client_Main is
       entry Start;
    end Read_Received;
 
+   --This helper function that converts the hash to a hexadecimal string is courtesy of ChatGPT.
    function To_Hexadecimal (Data : SHA2.SHA_256.Digest) return String is
          Hex : constant array(0 .. 15) of Character := "0123456789ABCDEF";
          Result : String(1 .. Data'Length * 2); -- Each byte becomes 2 characters in hex
@@ -104,35 +105,28 @@ procedure Client_Main is
                Partner_Pub_Key_E'Image & "," & Partner_Pub_Key_N'Image & ")");
          elsif Msg'Length > 4 and then Msg(1 .. 4) = "Msg:" then   
             declare
+               --This obtains the hash certifiate from the received ciphertext.
                Hash_String: String := Extract_Hash;
+               --This converts Hash_String to a digest format for verification.
                Hash_String_Digest: SHA2.SHA_256.Digest with Address => Hash_String'Address;
+               --This extracts the encrypted message fro the erceived ciphertext.
                Encrypted_Msg: String := Extract_Encrypted_Msg;
+               --This hashes the encrypted message with the SHA_256 algorithm.
                Encrypted_Hash: SHA2.SHA_256.Digest := Hash_Msg(Encrypted_Msg);
+               --This converts received hash to hexadecimal.
                Hex_Hash_New: Unbounded_String := To_Unbounded_String(To_Hexadecimal(Encrypted_Hash));
+               --To officially verify the hash, we convert the recived hash that is stored in the unbounded string to a regular string. The regular string is compared against hash recieved.
                Final_Hex_Hash: String(1 .. Length(Hex_Hash_New)) := To_String(Hex_Hash_New);
             begin
-               Put_Line("old hash:" & Hash_String);
-               Put_Line("new hash:" & Final_Hex_Hash);
-               Put_Line("encrypted message:"& Encrypted_Msg);
                if(Hash_String = Final_Hex_Hash) then
-                  Is_Same_Hash := True;
+                  --Is_Same_Hash := True;
                else
-                  Is_Same_Hash := False;
+                  --Is_Same_Hash := False;
                end if;
-               --  for I in Encrypted_Hash'range loop
-               --     Put_Line("Initial_Hash: " & Hash_String_Digest(I)'Image & " and Final Hash: " & Encrypted_Hash(I)'Image);
-               --     if(Hash_String_Digest(I)) = Encrypted_Hash(I) then
-               --        Is_Same_Hash := True;
-               --     else
-               --        Is_Same_Hash := False;
-               --        exit;
-               --     end if;
-               --  end loop;
-
-               Put_Line(Is_Same_Hash'Image);
+      
 
                if Is_Same_Hash then
-                  Put_Line("sdjkf " & Encrypted_Msg);
+                 
                   Put_Line (":> Decrypted: " & Decrypt_Msg (Encrypted_Msg));
                   Ada.Text_IO.Flush;
                
@@ -156,8 +150,6 @@ procedure Client_Main is
          declare
             Msg : constant String := Filter_Message;
          begin
-            Put_Line("ghghjgjhjj");
-            Put_Line(Msg'Img);
             exit when Msg = "quit";
          end;
       end loop;
@@ -169,47 +161,48 @@ procedure Client_Main is
    begin
       if Encrypted then
          declare
+            --This extracts the encrypted mesage from what was received from the server.
             Encrypted_Msg: Unbounded_String := To_Unbounded_String(Encrypt_Msg (Msg, Partner_Pub_Key_E, Partner_Pub_Key_N));
+            --This converts the extracted encrypted message to a string.
             Final_Encrypted_Msg: String(1 .. Length(Encrypted_Msg)) := To_String(Encrypted_Msg);
+            --Using the SHA2 library, we hash the encrypted message with the SHA_256 algorithm.
             Message_Hash: SHA2.SHA_256.Digest := Hash_Msg(Final_Encrypted_Msg);
+            --This converts the hashed message (the digest certificate) to hexadecimal and is stored in an unbounded string.
             Hash_String: Unbounded_String := To_Unbounded_String(To_Hexadecimal(Message_Hash));
+            --This converts the unbounded string containing the hexadecimal digets certificate to a regular string.
             Final_Hash_String: String(1.. Length(Hash_String)) := To_String(Hash_String);
           
-            --Hash_String: String(1 .. Messeage_Hash'Length) with Address => Message_Hash'Address;
 
          begin
-          
-            Put_Line(Final_Hash_String);
-            Put_Line("separator");
-            Put_Line(Final_Encrypted_Msg);
+         --Hint: We need to send the encrypted message, hash and the terminator here.
             String'Write(Ch,"Msg:" & Final_Hash_String & Final_Encrypted_Msg & Terminator);
             exception 
                when Error: others =>
                Put_Line (Exception_Information (Error));
 
-     
-            
          end;
       
          
         
       else
-         Put_Line("sendin out key");
          Put_Line(Msg'Img);
-         String'Write (Ch, Msg & Terminator);
+         --Hint: We need to send the key (essentialy an unencrypted message) along with the terminator here.
+         --String'Write (Ch, Msg & Terminator);
          
       end if;
    end Send_Msg;
 
 begin
-   Create_Socket (Socket => Client);
+   --Hint: We need to create a socket of type Client here.
+   --Create_Socket (Socket => Client);
+   --Hint: Please connect the Client socket to the server address of 127.0.0.1 and port 12_321.
    Connect_Socket
      (Socket => Client,
       Server =>
-        (Family => Family_Inet, Addr => Inet_Addr ("127.0.0.1"),
-         Port   => 12_321));
-
-   Channel := Stream (Client);
+        (Family => Family_Inet, Addr => Inet_Addr (--"127.0.0.1"),
+         Port   => --12_321));
+   --Hint: We need to give stream access to the Client socket here.
+   --Channel := Stream (Client);
 
    Read_Received.Start;
    begin
@@ -233,6 +226,6 @@ begin
          exit when Message = "quit";
       end;
    end loop;
-
-   Close_Socket (Client);
+   --Hint: We need to close the socket here.
+   --Close_Socket (Client);
 end Client_Main;
