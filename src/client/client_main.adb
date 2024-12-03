@@ -32,7 +32,7 @@ procedure Client_Main is
    task Read_Received is
       entry Start;
    end Read_Received;
-
+   -- This helper function was provided by ChatGPT.
    function To_Hexadecimal (Data : SHA2.SHA_256.Digest) return String is
          Hex : constant array(0 .. 15) of Character := "0123456789ABCDEF";
          Result : String(1 .. Data'Length * 2); -- Each byte becomes 2 characters in hex
