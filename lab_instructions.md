@@ -156,4 +156,7 @@ d(c) ≡ c^d (mod n)
 - RSA is the best known encryption method since it weaponizes the factorization of large numbers. Even with some of the most powerful computing systems, it is extremely difficult to determine the values of p and q, which will determine the factors of phi(n) that determine the value of d to decrypt ciphertexts.
 
 ## Your Tasks:
-- Please review the provided code for the functions
+Please fill in the code for the following functions:
+- Fill in code for power mod (helper function for encryption)
+- Fill in code for public keys
+- Fill in code for private keys
