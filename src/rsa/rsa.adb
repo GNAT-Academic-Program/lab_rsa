@@ -346,56 +346,60 @@ package body RSA is
       Nbr_Bytes_Per_Chunk : constant Integer := 1; --this is the max number of bytes
 
       function Sanitize_Msg (M : String) return String is
+         --What should To_Pad contain ? 
+         --Hint: the amount of bytes needed be 'filler' are calculated by subtracting (the length of the message mod the total number of bytes per chunk) from the total number of bytes per chunk.
          To_Pad : constant Integer :=
-           Nbr_Bytes_Per_Chunk - (M'Length mod (Nbr_Bytes_Per_Chunk));
-         San_Msg : constant String := M & To_Pad * Filling;
+           --Nbr_Bytes_Per_Chunk - (M'Length mod (Nbr_Bytes_Per_Chunk));
+           --What should San_Msg contain ?
+           --Hint: the fully santized message is made of the message sent and any required fillers.
+         San_Msg : constant String := -- M & To_Pad * Filling;
       begin
-         Put_Line("sanitiszed message; " & San_Msg);
+      
          return San_Msg;
       end Sanitize_Msg;
 
       
 
       function Number_Of_Words (M : String) return Integer is
-        (M'Length / Nbr_Bytes_Per_Chunk);
+        -- Hint: here we calculate the number of chunks in the plaintext.
+        --(M'Length / Nbr_Bytes_Per_Chunk);
 
       Sanitized_Msg : constant String        := Sanitize_Msg (Msg);
       Nbr_Words     : constant Integer := Number_Of_Words (Sanitized_Msg);
-      W             : Words (1 .. Nbr_Words) := [others => 0];
+      W             : --Words (1 .. Nbr_Words) := [others => 0];
 
       function Build_Encrypted_Msg
         (W : Words; Idx : Integer := 1) return String
       is
       begin
-         Put_Line("num words; " & Nbr_Words'Image);
+    
          if Idx < W'Last then
             return
-               Trim (W (Idx)'Image) & "," & Build_Encrypted_Msg (W, Idx + 1);
+              -- Trim (W (Idx)'Image) & "," & Build_Encrypted_Msg (W, Idx + 1);
          else
-            return Trim (W (Idx)'Image) & ",";
+            --return Trim (W (Idx)'Image) & ",";
          end if;
       end Build_Encrypted_Msg;
+
    begin
       for I in W'Range loop
          declare
             Idx : constant Integer := ((I - 1) * Nbr_Bytes_Per_Chunk) + 1;
          begin
-            Put_Line(" word bit convert; " & Sanitized_Msg (Idx .. Idx + Nbr_Bytes_Per_Chunk - 1));
-           
-
+            
+            --Hint:to split the plaintext into chunks of bytes, we do: Sanitized_Msg (Idx .. Idx + Nbr_Bytes_Per_Chunk - 1)
+            --Hint: This is where the sanitized chunk is converted to an inetger and is filled into the W array.
             W (I) :=
-              To_Int (Sanitized_Msg (Idx .. Idx + Nbr_Bytes_Per_Chunk - 1));
+              --To_Int (Sanitized_Msg (Idx .. Idx + Nbr_Bytes_Per_Chunk - 1));
 
             Put_Line(" word bit as int; " & W(I)'Image);
          end;
       end loop;
 
       for I in W'Range loop
-         
-         W (I) := Encrypt (W (I), Pub_Key_E, Pub_Key_N);
-         Put_Line("encrypted word bit: " & W(I)'Image);
-         Put_Line("decrypted word bit" & Decrypt(W(I))'Image);
-         Put_Line("word string val" & To_Str(Decrypt(W(I))));
+         --Hint: We need to encrypt each bit of the plaintext which is now in integer form stored in the W array.
+         W (I) := -- Encrypt (W (I), Pub_Key_E, Pub_Key_N);
+ 
       end loop;
 
       declare
@@ -415,8 +419,6 @@ package body RSA is
       return String
    is
    begin
-      Put_Line("Fidning next word");
-      
       E := Msg'Last;
       Put_Line("this is E: " & E'Image);
       for I in S .. E loop
@@ -433,18 +435,17 @@ package body RSA is
 
    function Decrypt_Msg (Msg : String) return String is
       type Big_Int_Vector is array (Positive range <>) of Big_Integer;
-      S : Integer := Msg'First;
-      E : Integer := Msg'Last;
+      S : --Integer := Msg'First;
+      E : --Integer := Msg'Last;
       temp: Integer;
       function Number_Of_Words return Integer is
+      --Hint: this is the counter to track the number of chunks that the ciphertext has.
          Comma_Count : Integer := 0;
       begin
-
          for I in Msg'Range loop
-            Put_Line("index: " & I'Image);
-            Put_Line(Msg(I)'Img);
+        
             if Msg (I) = ',' then
-               Comma_Count := Comma_Count + 1;
+               -- Comma_Count := Comma_Count + 1;
             end if;
          end loop;
 
@@ -460,23 +461,16 @@ package body RSA is
       begin
         
          if Idx < W'Last then
-              Put_Line("encrypted part:" & W(Idx)'Image);
-              Put_Line("decrypted ,message chunks: "  & (Decrypt (W (Idx))'Image));
-              return To_Str (Decrypt (W (Idx))) & Build_Decrypted_Msg (W, Idx + 1);
+              return --To_Str (Decrypt (W (Idx))) & Build_Decrypted_Msg (W, Idx + 1);
          else
-            Put_Line("encrypted part:" & W(Idx)'Image);
-            Put_Line("decrypted ,message chunks: "  & (Decrypt (W (Idx))'Image));
-            return To_Str (Decrypt (W (Idx)));
+            return --To_Str (Decrypt (W (Idx)));
          end if;
       
       end Build_Decrypted_Msg;
    begin
-
+      -- Hint: This is where we build the array W of encrypted chunks.
       for I in W'Range loop
-         Put_Line("I am in the loop");
-        
-         W(I) := From_String(Find_Next_Word (Msg, S, E));
-         Put_Line("this is a word encrypted: " & W(I)'Image);
+         W(I) := --From_String(Find_Next_Word (Msg, S, E));
          S := E + 2;
       end loop;
 

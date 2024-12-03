@@ -1,59 +1,48 @@
-# Lab 2 Instructions
+# Lab 3 Instructions
 
 - Note that the theory explanations were powered by my research in combination with ChatGPT.
-## How are messages encrypted ?
-To encrypt plaintext, we make use of the Encrypt_Msg function. From this function (and the helper functions it calls), we are able to achieve the necessary steps to build an encrypted message from the given plaintext and the required keys.
+## How do we decrypt a ciphertext ?
+To decrypt ciphertext, we make use of the Decrypt_Msg function. From this function (and the nested helper functions it calls), we are able to achieve the necessary steps to build a decrypted message from the given ciphertext and the required keys.
 
-The steps are as follows: (as summarized by ChatGPT)
-- Sanitize the given plaintext.
-- Split the sanitized message into chunks.
-- Convert each chunk into an integer.
-- Encrypt each integer.
-- Construct a string from the encrypted integers and returns the string (ie. the ciphertext).
+The steps are as follows: 
+- Determine the beginning and end of the received ciphertext.
+- Count the number of chunks in the ciphertext.
+- Decrypt each chunk into its original integer value and convert this into string format.
+- Append each decrypted string format of the chunk to a string variable which will resulted into the constructed plaintext.
 
-### Step 1: Sanitization of Plaintext:
-- In this step, we make use of the Sanitize_Msg function that takes the plaintext as string as a parameter. First, the function calculates the number of padding bytes needed to make the plaintext a multiple of 2. This program has set the number of bytes per chunk to be 2. This number is held in a variable called To_Pad.
-- The sanitized message is created by concatenating the plaintext with asterisks. Concatention is done with the & symbol. The number of asterisks added is the number of padding bytes calculated for To_Pad.
-- The sanitized message is returned.
+### Step 1: Determining the Start and End of Ciphertext:
+- This step is done at the very beginning of the Decrypt_Message function.
+- We can find the start and end of the given ciphertext (which is simply a string variable).
+- The start is found by using the 'First attribute of the ciphertext.
+- The end is found with using the 'Last attribute of the ciphertext.
+- Both values are stored in variables called S and E.
 ```console
-Your job: fill in the missing code in order to complete the required calculations for the this step.
-Please also fill in the code to create and return the sanitized message.
-
-HINT: this can be calculated with the use of the modulo function in conjuction with a simple subtraction. The two variables in the equation are the number of bytes per chunk and the plaintext length. There are two operations (one subtraction and a modulo division) that take place during this calculation.
+Your job: fill in the missing code to correctly determine the value of S and E.
 ```
 
-### Step 2: Splitting of the Sanitized Plaintext into Chunks:
-- The number of chunks in the plaintext is found using the following calculation:
-plaintext length / number of bytes per chunk
-- A W array is instatiated and initially holds an integer value of 0. This and the previous step are done in the nested function called Number_Of_Words.
-- The sanitized plaintext is split into chunks by determining the number of indexes it has, then using its respecitive index to get the associated chunk of the sanitized message.
-- Each chunk is a character in the overall plaintext. For example, if the sanitized message is "adacore", the chunks are "a", "d", "a", "c", "o", "r", "e". A chunk can also be a filler character, namely "*".
-- For the length of W, we loop through the range of W and grab the respetive chunk of the sanitized message using the index position. 
-- Once the chunk is obtained, we convert it to an Integer withthe To_Int helper function and store it at the proper index of W.
-- The index Idx is instantiated as an integer using the equation:
+### Step 2: Count the number of chunks in the ciphertext:
+- In the helper function Number_Of_Words, we count the number of chunks to decrypt.
+- Looping through the range of the ciphertext, we check each character of the ciphertext for a comma. If it is, this means that we found a chunk.
+- This means we increment our counter that tracks the number of chunks in the ciphertext.
 ```console
- ((position in W's range (namely I) -1) * number of bytes per chunk) + 1.
-
-```console
-Your job: fill in the missing code to implement the logic for instantiating the W array of type Words (an array of strings). The type Words has already been instantiated.
+Your job: fill in the missing code to correctly implement the logic for finding the number of words.
 ```
 
-### Step 3: Encrypting each integer:
-- This step is done in the main functionality of Encrypt_Msg function. We loop through the entire range of the W array.
-- At each iteration, we call the Encrypt function with its necessary parameters. Each iteration represents the encryption of each 'integerized' chunk having encryption done upon it and stored in the W array.
+### Step 3: Creating an array of encrypted words:
+- Once the loop is complete, we instantiate an array that will hold the decrypted chunk which is initialized with 0 for each space. Its size is the same as the counter of the number of chunk. This is done outside the Number_Of_Words function and is named W.
+- This step makes use of the main functionality in the Decrypt_Msg function. 
+- To do this, we loop through the range of W and fill the array at each iteration though getting the integer value of every chunk. Each chunk is obtained through the helper function Find_Next_Word. This function takes the cyphertext, Start and End positions as parameter.
+- At each iteration, after a chunk's integer value is obtained, the Start index is increased by 2 to find the position of the next chunk to be processed.
 ```console
-Your job: fill in the missing code to implement the logic for the encryption process. 
+Your job: fill in the missing code to correctly implement the logic for finding integer value of every word and filling the W array accordingly. Note that you wil have to transform it to a Big_Integer by using the From_String helper function.
 ```
 
-### Step 4: Constructing the ciphertext:
-- Here we make use of the Build_Encrypted_Msg by passing it the word array, which now has the encrypted representation of the message in integers instead of just plaintext integers. 
-- The goal of the Build_Encrypted_Msg function is to construct a single string that represents the string of integers that represent the encrypted message. Each integer that represents a chunk of the message is trimmed. The final string contains all integers that represent a chunk of the ciphertext and all are comma separated.
-- We recursively build the ciphertext where we determine if the index is less than the last index of the encrypted word it received. 
-- If this is true, this means we are not finished building the string. In this case, we trim the chunk at the respective index, append a comma and recursively call the function wiht the index increased by one.
-- If not true, this means that we have reached the last chunk of the ciphertext. We would simply trim the chunk and append a comma without calling the function again.
-
+### Step 4: Decrypt each word and construct the plaintext:
+- Similar to building the encrypted message, we recursively build the plaintext with the Build_Decrypted_Msg function. 
+- If the current index is less than the last position of the given word array, the word at that position in the array is decrypted using the previously defined Decrypt function from lab 1. 
+- The next word is decrypted by calling the same function once more with the same array, just with the index position increased by one.
+- If not, this indicates that we have reached the last word in the cipher text and it is decrypted.
+- Once completed, each decrypted chunk has successfully been appended to the plaintext string.
 ```console
-Your job: fill in the missing code to implement the logic for the collection and concatenation of the encrypted words. 
+Your job: fill in the missing code to correctly implement the logic for the recursive function that correctly builds the plaintext. Note that eahc decrypted chunk will have to be converted to string with the function To_Str.
 ```
-
-## The next lab will cover how RSA decryption works and how to build the plaintext from the ciphertext.
