@@ -169,8 +169,8 @@ package body RSA is
       Gen : Rand_Idx.Generator;
    begin
       Rand_Idx.Reset (Gen);
-      Put_Line("p got");
-      return Get_Random_Prime;
+      -- What should we return here? A prime number? What helper function would help get a prime number?
+      -- return Get_Random_Prime;
       
    end Pick_P;
 
@@ -179,25 +179,25 @@ package body RSA is
       Q   : Big_Integer := P;
    begin
       Rand_Idx.Reset (Gen);
-      while P = Q loop
-         Q := Get_Random_Prime;
+      -- Should we allow P and Q to be the same? If not, how can we handle this edge case? (in essence, what should the condition of the while loop be ?)
+      while --P = Q loop
+         -- What should we return here? A prime number? What helper function would help get a prime number?
+         --Q := Get_Random_Prime;
       end loop;
-      Put_Line("q got");
+      
       return Q;
    end Pick_Q;
 
    function Compute_N (P, Q :in out Big_Integer) return Big_Integer is
    begin
-      Put_Line("in computing N");
-      
-
-      return P * Q;
+      -- What should we return here? According to RSA, how do we calculate N?
+      --return P * Q;
    end Compute_N;
 
    function Compute_Phi (P, Q : Big_Integer) return Big_Integer is
    begin
-      Put_Line("ophi");
-      return (P - 1) * (Q - 1);
+      -- What should we return here? According to RSA, how do we calculate Phi?
+      --return (P - 1) * (Q - 1);
    end Compute_Phi;
 
    function Select_E (Phi : Big_Integer) return Big_Integer is
@@ -205,7 +205,9 @@ package body RSA is
          Final_Result: Big_Integer := 0;
       begin
          Coprime_Result :=
-              Greatest_Common_Divisor
+         --Hint: In RSA, the value of E needs to be coprime to Phi. What helper function could we use to check if the value of Phi and 3 are coprime?
+         --3 or 65537 is used in this starter code as it is commonly used in production-level RSA implementations.
+              --Greatest_Common_Divisor
                 (To_Big_Integer (3), Phi);
          if(Coprime_Result /=1) then
             Final_Result := To_Big_Integer(65537);
@@ -228,12 +230,17 @@ package body RSA is
          E   := Select_E (Phi);
          D   := Mod_Inverse (E, Phi);
       end loop;
-      Pub_Key.N  := N;
-      Pub_Key.E  := E;
-      Priv_Key.N := N;
-      Priv_Key.D := D;
+      --Hint:What letters make up public and private keys? We can access them with the format Pub_Key.X and Priv_Key.X where X is either N or E or D. 
+
+      --Pub_Key.N  := N;
+      --Pub_Key.E  := E;
+      --Priv_Key.N := N;
+      --Priv_Key.D := D;
    end Generate_Keys;
 
+   --Hint: According to Adacore docs, m**d is too large to be handled directly. 
+   --We can still achieve the same computation by "keeping an intermediate result mod n during the m**d calculation."
+   --Hint 2: The intermediate result would be Result * Mult.
    function Power_Mod (M, D, N : Big_Integer) return Big_Integer is
 
       function Is_Odd (X : Big_Integer) return Boolean is (X mod 2 /= 0);
@@ -243,11 +250,15 @@ package body RSA is
       Mult   : Big_Integer := M mod N;
    begin
       while Exp /= 0 loop
+         --According to Cursor AI, this is effectively binary exponentiation.
+         --Therefore, if the exponent is odd, should the itermediate result be updated? 
          if Is_Odd (Exp) then
-            Result := (Result * Mult) mod N;
+           --  := (Result * Mult) mod N;
          end if;
-         Mult := Mult**2 mod N;
-         Exp  := Exp / 2;
+         --Hint 3: Mult is always squared with each iteration of the loop. Exponent is divided by 2 each iteration as well to process each bit of the exponent according to Cursor AI.
+
+         --Mult := Mult**2 mod N;
+         --Exp  := Exp / 2;
       end loop;
 
       return Result;
@@ -328,8 +339,8 @@ package body RSA is
                Cleaned_Length := Cleaned_Length + 1;
                Cleaned_Bytes(Cleaned_Length) := Original_Hash(Index);
             else
-               -- Handle the case where the cleaned digest exceeds bounds
-               exit; -- Or raise an error, depending on your application logic
+               -- Handle the case where the cleaned digest exceeds bounds (this part is curtosy of ChatGPT)
+               exit;
             end if;
          end if;
       end loop;
@@ -485,12 +496,12 @@ package body RSA is
 
    function Public_Key_N return Big_Integer is
    begin
-      return (Pub_Key.N);
+      --return (Pub_Key.N);
    end Public_Key_N;
 
    function Public_Key_E return Big_Integer is
    begin
-      return (Pub_Key.E);
+      --return (Pub_Key.E);
    end Public_Key_E;
 
 begin
