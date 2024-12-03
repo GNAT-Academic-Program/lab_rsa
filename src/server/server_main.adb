@@ -5,9 +5,11 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 procedure Server_Main is
 
-   Tasks_To_Create : constant := 2;
+-- HINT: how many clients are we expecting?
+   Tasks_To_Create : constant := 0;
+   -- 2;
 
-   Terminator : constant Character := Character'Val(0);
+   Terminator : constant Character := ASCII.NUL;
 
    type Integer_List is array (1 .. Tasks_To_Create) of Integer;
    subtype Counter is Integer range 0 .. Tasks_To_Create;
@@ -99,8 +101,10 @@ procedure Server_Main is
             delay 0.1;
             Task_Messages (my_Index).Get (my_Message);
             if Length (my_Message) /= 0 then
-               String'Write (my_Channel, To_String (my_Message));
-               Delete (my_Message, Positive'First, Length (my_Message));
+               --HINT: how would we send a string over a socket?
+               --String'Write (my_Channel, To_String (my_Message));
+               -- should we clear the message after sending it?
+               -- Delete (my_Message, Positive'First, Length (my_Message));
             end if;
          end loop;
       end Write;
@@ -118,11 +122,12 @@ procedure Server_Main is
                C : constant Character := Character'Input (my_Channel);
             begin
                if C = Terminator then
-                  Ada.Text_IO.New_Line;
+                  --Ada.Text_IO.New_Line;
                else
                   Ada.Text_IO.Put (C);
                end if;
-               Task_Messages (if my_Index = 1 then 2 else 1).Add (C);
+               -- HINT: what should we do here if C is not the terminator?
+               --Task_Messages (if my_Index = 1 then 2 else 1).Add (C); 
             end;
          exception
             when others =>
@@ -147,16 +152,17 @@ procedure Server_Main is
             Channel    : GNAT.Sockets.Stream_Access; Task_Index : Index)
          do
             my_Connection := Connection;
-            my_Client     := Client;
-            my_Channel    := Channel;
+            --my_Client     := Client;
+            --my_Channel    := Channel;
             my_Index      := Task_Index;
          end Setup;
 
          accept Read_Write;
          begin
             Ada.Text_IO.Put_Line ("Task " & Integer'Image (my_Index));
-            R.Start;
-            W.Start;
+            --HINT: what should we start here? format: task_name.Start;
+            --R.Start;
+           -- W.Start;
          end;
       end loop;
    end SocketTask;
@@ -179,6 +185,7 @@ procedure Server_Main is
       GNAT.Sockets.Set_Socket_Option
         (Socket => Receiver, Level => GNAT.Sockets.Socket_Level,
          Option => (Name => GNAT.Sockets.Reuse_Address, Enabled => True));
+         
       GNAT.Sockets.Bind_Socket
         (Socket  => Receiver,
          Address =>
@@ -194,9 +201,10 @@ procedure Server_Main is
 
          Ada.Text_IO.Put_Line ("Connect " & GNAT.Sockets.Image (Client));
 
-         Channel := GNAT.Sockets.Stream (Connection);
+         -- HINT: how would we initialize input and output streams ?
+         -- Channel := GNAT.Sockets.Stream (Connection);
 
-         Task_Info.Pop_Stack (Use_Task);
+         -- Task_Info.Pop_Stack (Use_Task);
          --  Protected guard waits if full house.
 
          --  Setup the socket in this task in rendezvous.
@@ -209,5 +217,6 @@ procedure Server_Main is
    end SocketServer;
    Echo_Server : SocketServer (my_Port => 12_321);
 begin
-   Echo_Server.Listen;
+   -- HINT: how would we start the functionality ?
+   -- Echo_Server.Listen;
 end Server_Main;
