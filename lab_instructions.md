@@ -87,3 +87,5 @@ where Tasks_To_Create is a constant integer that defines the number of available
 ```ada
 Delete (Message string value, string's starting position , number of characters to delete);
 ```
+
+-The next lab will cover the socket implementation from the perspective of the server.
