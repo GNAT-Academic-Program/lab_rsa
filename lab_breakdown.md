@@ -6,12 +6,13 @@
 - Fill in code for private keys
 
 #### Lab 2:
-- Fill in 182 to 184 with correct variables to complete Encrypt function
-- Fill in code with correct variables to complete Decrypt Function
+- Fill in code gaps in starter code to complete Encrypt function
+- Fill in code gaps in starter code for building encrypted message
+
 
 #### Lab 3:
-- Fill in code gaps in starter code for building encrypted message
 - Fill in code gaps in starter code for building decrypted message
+- Fill in code with correct variables to complete Decrypt Function
 
 #### Lab 4 (if learning on sockets are to be done):
 - Fill in client_main code
