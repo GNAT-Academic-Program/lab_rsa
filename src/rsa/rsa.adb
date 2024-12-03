@@ -34,57 +34,73 @@ package body RSA is
 
    Pub_Key  : Key_Data (Pub);
    Priv_Key : Key_Data (Priv);
-      
 
-   function Isqrt (N : Big_Integer) return Big_Integer is
-      Float_Sqrt : Float;
-      Temp_Integer: Integer;
-      Float_Convert: Integer;
+-- helper function Mod_Pow and Is_Prime with Miller-Rabin test function are courtesy of Cursor AI.
+   function Mod_Pow (Base, Exp, M : Big_Integer) return Big_Integer is
+      Result : Big_Integer := 1;
+      B : Big_Integer := Base mod M;
+      E : Big_Integer := Exp;
    begin
-      Temp_Integer := To_Integer(N);
-      Float_Sqrt := Float(Temp_Integer);
-      Float_Convert := Integer(Float_Sqrt);
-      return To_Big_Integer(Float_Convert); -- Convert the float back to Big_Integer
-   end Isqrt;
+      while E > 0 loop
+         if E mod 2 = 1 then
+            Result := (Result * B) mod M;
+         end if;
+         B := (B * B) mod M;
+         E := E / 2;
+      end loop;
+      return Result;
+   end Mod_Pow;
 
    function Is_Prime (N : Big_Integer) return Boolean is
-      I : Big_Integer := 5;
-      Limit : Big_Integer := Isqrt(N); -- Square root of N
-   begin
-      Put_Line("n to determine prime: " & N'Image);
+      function Miller_Rabin_Test (A : Big_Integer) return Boolean is
+         D : Big_Integer := N - 1;
+         X : Big_Integer;
+         Y : Big_Integer;
+         J : Natural := 0;
+      begin
+         -- Find largest power of 2 that divides N-1
+         while D mod 2 = 0 loop
+            D := D / 2;
+            J := J + 1;
+         end loop;
 
-      -- Handle small numbers
-      if N < 2 then
-         Put_Line("def not prime");
-         I := 5;
+         -- Initial test
+         X := Mod_Pow(A, D, N);
+         if X = 1 or X = N - 1 then
+            return True;
+         end if;
+
+         -- Square 'r-1' times
+         for I in 1 .. J - 1 loop
+            X := (X * X) mod N;
+            if X = N - 1 then
+               return True;
+            end if;
+            if X = 1 then
+               return False;
+            end if;
+         end loop;
+
          return False;
-      elsif N = 2 or N = 3 then
-         Put_Line("it is prime since it is 2 or 3");
-         I := 5;
-         return True;  -- 2 and 3 are prime
+      end Miller_Rabin_Test;
+
+   begin
+      -- Handle small numbers quickly
+      if N <= 1 then
+         return False;
+      elsif N <= 3 then
+         return True;
       elsif N mod 2 = 0 then
-         Put_Line("divisible by 2, not prime");
-         I := 5;
-         return False; -- Exclude even numbers
-      elsif N mod 3 = 0 then
-         Put_Line("divisible by 3, not prime");
-         I := 5;
-         return False; -- Exclude numbers divisible by 3
+         return False;
       end if;
 
-      -- Check divisibility by numbers of the form 6k +/- 1
-      while I <= Limit loop
-         if N mod I = 0 then
-            Put_Line("not prime");
-            Put_Line("this is I" & I'Image);
-            I := 5;
-            return False;
-         end if;
-         I := I + 2; -- Check 6k +/- 1
-      end loop;
-
-      Put_Line("it is prime");
-      return True; -- N is prime
+      -- Miller-Rabin test with first few prime numbers as bases
+      -- These specific values provide strong guarantees for large numbers
+      return Miller_Rabin_Test(To_Big_Integer(2)) and then
+             Miller_Rabin_Test(To_Big_Integer(3)) and then
+             Miller_Rabin_Test(To_Big_Integer(5)) and then
+             Miller_Rabin_Test(To_Big_Integer(7)) and then
+             Miller_Rabin_Test(To_Big_Integer(11));
    end Is_Prime;
    subtype Prime_Number is Big_Integer;
 
@@ -185,49 +201,9 @@ package body RSA is
    end Compute_Phi;
 
    function Select_E (Phi : Big_Integer) return Big_Integer is
-      --End_Idx : Big_Integer := 10;
-      
-   --  begin
-   --     for I in 2 .. 10 loop
-   --        if (Is_Prime(To_Big_Integer(I))) then
-   --           if To_Big_Integer (I) < Phi then
-   --              End_Idx := To_Big_Integer(I);
-   --           end if;
-   --        end if;
-   --     end loop;
-   --     declare
-   --        subtype coprimeRange is Integer range 1 .. 20;
-   --        package Rand_Coprime is new Ada.Numerics.Discrete_Random(coprimeRange);
-   --        Gen_Coprime    : Rand_Coprime.Generator;
-   --        Idx_Rand       : Prime_Range;
-   --        Idx_Rand_IsPrime: Boolean := False;
          Coprime_Result : Big_Integer := 0;
          Final_Result: Big_Integer := 0;
       begin
-         
-         --  while Coprime_Result /= 1 loop
-         --     Rand_Coprime.Reset (Gen_Coprime);
-         --     --Idx_Rand       := Rand_Coprime.Random (Gen_Coprime);
-         --     --Idx_Rand_IsPrime := Is_Prime(To_Big_Integer(Idx_Rand));
-            
-         --     while not Idx_Rand_IsPrime loop
-         --        Idx_Rand       := Rand_Coprime.Random (Gen_Coprime);
-         --        Idx_Rand_IsPrime := Is_Prime(To_Big_Integer(Idx_Rand));
-         --     end loop;
-
-         --     Coprime_Result :=
-         --        Greatest_Common_Divisor
-         --           (To_Big_Integer (Idx_Rand), Phi);
-                  
-         --        Put_Line("e calcs");
-         --        Put_Line(Coprime_Result'Image);
-
-         --        if(Coprime_Result /= 1) then
-         --           Idx_Rand := Rand_Coprime.Random (Gen_Coprime);
-         --           Idx_Rand_IsPrime := Is_Prime(To_Big_Integer(Idx_Rand));
-         --        end if;
-           
-         --  end loop;
          Coprime_Result :=
               Greatest_Common_Divisor
                 (To_Big_Integer (3), Phi);
@@ -252,12 +228,6 @@ package body RSA is
          E   := Select_E (Phi);
          D   := Mod_Inverse (E, Phi);
       end loop;
-      Put_Line("this is P:" & P'Image);
-      Put_Line("this is Q:" & Q'Image);
-      Put_Line("this is N:" & N'Image);
-      Put_Line("this is Phi:" & Phi'Image);
-      Put_Line("this is E:" & E'Image);
-      Put_Line("this is D:" & D'Image);
       Pub_Key.N  := N;
       Pub_Key.E  := E;
       Priv_Key.N := N;
@@ -272,21 +242,12 @@ package body RSA is
       Exp    : Big_Integer := D;
       Mult   : Big_Integer := M mod N;
    begin
-      Put_Line("this is M:" & M'Image);
-      Put_Line("this is n:" & N'Image);
-      Put_Line("this is Exp:" & Exp'Image);
-      Put_Line("this is Result:" & Result'Image);
-      Put_Line("this is Mult:" & Mult'Image);
       while Exp /= 0 loop
          if Is_Odd (Exp) then
             Result := (Result * Mult) mod N;
          end if;
          Mult := Mult**2 mod N;
          Exp  := Exp / 2;
-
-         Put_Line("this is new Exp:" & Exp'Image);
-         Put_Line("this is new Result:" & Result'Image);
-         Put_Line("this is new Mult:" & Mult'Image);
       end loop;
 
       return Result;
@@ -307,7 +268,7 @@ package body RSA is
    begin
       return Power_Mod(Cypher, Priv_Key.D, Priv_Key.N);
    end Decrypt;
-
+   --To_Str and To_Int are courtesy of ChatGPT
    function To_Str (I : Big_Integer) return String is
       Char_List : String := (1 .. 4 => ASCII.NUL);
       Local_I   : Big_Integer := I;
@@ -344,6 +305,7 @@ package body RSA is
    Filling : constant String := "*";
    type Words is array (Positive range <>) of Big_Integer;
    
+   --Hash_Msg lines 318 to 334 for cleaning the hash is courtesy of ChatGPT
    function Hash_Msg(StringVal: String) return SHA2.SHA_256.Digest is
       Original_Hash : SHA2.SHA_256.Digest;
       Cleaned_Bytes : SHA2.SHA_256.Digest := (others => 0); -- Placeholder for the cleaned digest
@@ -372,10 +334,7 @@ package body RSA is
          end if;
       end loop;
 
-      -- Debug: Print the cleaned digest
-      -- Put_Line("Cleaned Digest: " & Cleaned_Bytes'Image);
-
-      -- Return the cleaned digest
+  
       return Cleaned_Bytes;
    end Hash_Msg;
 
@@ -442,7 +401,7 @@ package body RSA is
       declare
          Encrypted_Msg : constant String := Build_Encrypted_Msg (W);
       begin
-         Put_Line("official encyrpted messaGE:"& Encrypted_Msg);
+         Put_Line("official encyrpted message:"& Encrypted_Msg);
          return Encrypted_Msg;
       exception
          when others =>
