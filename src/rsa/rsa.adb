@@ -346,12 +346,9 @@ package body RSA is
       Nbr_Bytes_Per_Chunk : constant Integer := 1; --this is the max number of bytes
 
       function Sanitize_Msg (M : String) return String is
-         --What should To_Pad contain ? 
-         --Hint: the amount of bytes needed be 'filler' are calculated by subtracting (the length of the message mod the total number of bytes per chunk) from the total number of bytes per chunk.
-         To_Pad : constant Integer :=
-           --Nbr_Bytes_Per_Chunk - (M'Length mod (Nbr_Bytes_Per_Chunk));
-           --What should San_Msg contain ?
-           --Hint: the fully santized message is made of the message sent and any required fillers.
+        To_Pad : constant Integer :=
+           -Nbr_Bytes_Per_Chunk - (M'Length mod (Nbr_Bytes_Per_Chunk));
+           What should San_Msg contain ?
          San_Msg : constant String := -- M & To_Pad * Filling;
       begin
       
@@ -361,12 +358,11 @@ package body RSA is
       
 
       function Number_Of_Words (M : String) return Integer is
-        -- Hint: here we calculate the number of chunks in the plaintext.
-        --(M'Length / Nbr_Bytes_Per_Chunk);
+        (M'Length / Nbr_Bytes_Per_Chunk);
 
       Sanitized_Msg : constant String        := Sanitize_Msg (Msg);
       Nbr_Words     : constant Integer := Number_Of_Words (Sanitized_Msg);
-      W             : --Words (1 .. Nbr_Words) := [others => 0];
+      W             : Words (1 .. Nbr_Words) := [others => 0];
 
       function Build_Encrypted_Msg
         (W : Words; Idx : Integer := 1) return String
@@ -375,9 +371,9 @@ package body RSA is
     
          if Idx < W'Last then
             return
-              -- Trim (W (Idx)'Image) & "," & Build_Encrypted_Msg (W, Idx + 1);
+               Trim (W (Idx)'Image) & "," & Build_Encrypted_Msg (W, Idx + 1);
          else
-            --return Trim (W (Idx)'Image) & ",";
+            return Trim (W (Idx)'Image) & ",";
          end if;
       end Build_Encrypted_Msg;
 
@@ -387,18 +383,15 @@ package body RSA is
             Idx : constant Integer := ((I - 1) * Nbr_Bytes_Per_Chunk) + 1;
          begin
             
-            --Hint:to split the plaintext into chunks of bytes, we do: Sanitized_Msg (Idx .. Idx + Nbr_Bytes_Per_Chunk - 1)
-            --Hint: This is where the sanitized chunk is converted to an inetger and is filled into the W array.
             W (I) :=
-              --To_Int (Sanitized_Msg (Idx .. Idx + Nbr_Bytes_Per_Chunk - 1));
+              To_Int (Sanitized_Msg (Idx .. Idx + Nbr_Bytes_Per_Chunk - 1));
 
             Put_Line(" word bit as int; " & W(I)'Image);
          end;
       end loop;
 
       for I in W'Range loop
-         --Hint: We need to encrypt each bit of the plaintext which is now in integer form stored in the W array.
-         W (I) := -- Encrypt (W (I), Pub_Key_E, Pub_Key_N);
+         W (I) :=  Encrypt (W (I), Pub_Key_E, Pub_Key_N);
  
       end loop;
 
