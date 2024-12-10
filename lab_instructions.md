@@ -4,7 +4,7 @@
 ## How are messages encrypted ?
 To encrypt plaintext, we make use of the Encrypt_Msg function. From this function (and the helper functions it calls), we are able to achieve the necessary steps to build an encrypted message from the given plaintext and the required keys.
 
-The steps are as follows: (as summarized by ChatGPT)
+The steps are as follows: (bullet points were generated with assistance from ChatGPT analysis. However, all writing is in my own words)
 - Sanitize the given plaintext.
 - Split the sanitized message into chunks.
 - Convert each chunk into an integer.
